@@ -2,9 +2,14 @@ package com.parkit.parkingsystem.model;
 
 import java.util.Date;
 
+/**
+ * Ticket Model
+ * @author olivi
+ *
+ */
 public class Ticket {
     private int id;
-    private ParkingSpot parkingSpot;
+    private ParkingSpot parkingSpot; //Foreign Key
     private String vehicleRegNumber;
     private double price;
     private Date inTime;

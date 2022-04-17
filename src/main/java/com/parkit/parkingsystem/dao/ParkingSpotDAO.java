@@ -3,6 +3,7 @@ package com.parkit.parkingsystem.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,16 +13,26 @@ import com.parkit.parkingsystem.constants.DBConstants;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.model.ParkingSpot;
 
+/**
+ * Reads (query) and Updates on table parking 
+ * @author olivi
+ *
+ */
 public class ParkingSpotDAO {
     private static final Logger logger = LogManager.getLogger("ParkingSpotDAO");
 
     public DataBaseConfig dataBaseConfig = new DataBaseConfig();
 
+    /**
+     * Does a query to get the first minimal index of an available parking spot for a given vehicule's type
+     * @param parkingType
+     * @return the index of the available parking spot
+     */
     public int getNextAvailableSlot(ParkingType parkingType){
         Connection con = null;
         int result=-1;
         try {
-            con = dataBaseConfig.getConnection();
+            con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
             PreparedStatement ps = con.prepareStatement(DBConstants.GET_NEXT_PARKING_SPOT);
             ps.setString(1, parkingType.toString());
             ResultSet rs = ps.executeQuery();
@@ -38,11 +49,16 @@ public class ParkingSpotDAO {
         return result;
     }
 
+    /**
+     * updates field available for a given ParkingSpot's identifier
+     * @param ParkingSpot model
+     * @return boolean : sucess or failure to get update
+     */
     public boolean updateParking(ParkingSpot parkingSpot){
         //update the availability fo that parking slot
         Connection con = null;
         try {
-            con = dataBaseConfig.getConnection();
+            con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
             PreparedStatement ps = con.prepareStatement(DBConstants.UPDATE_PARKING_SPOT);
             ps.setBoolean(1, parkingSpot.isAvailable());
             ps.setInt(2, parkingSpot.getId());
@@ -53,7 +69,7 @@ public class ParkingSpotDAO {
             logger.error("Error updating parking info",ex);
             return false;
         }finally {
-            dataBaseConfig.closeConnection(con);
+            dataBaseConfig.closeConnection(con); //The finally block will be executed even after a return statement in a method.
         }
     }
 

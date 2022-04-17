@@ -14,16 +14,26 @@ import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 
+/**
+ * Saves (persists), Reads (query) an Updates on table ticket 
+ * @author Olivier MOREL
+ *
+ */
 public class TicketDAO {
 
     private static final Logger logger = LogManager.getLogger("TicketDAO");
 
     public DataBaseConfig dataBaseConfig = new DataBaseConfig();
 
+    /**
+     * Saves (persists) a new ticket model
+     * @param Ticket model
+     * @return boolean : true = success or false = failure
+     */
     public boolean saveTicket(Ticket ticket){
         Connection con = null;
         try {
-            con = dataBaseConfig.getConnection();
+            con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
             PreparedStatement ps = con.prepareStatement(DBConstants.SAVE_TICKET);
             //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
             //ps.setInt(1,ticket.getId());
@@ -34,18 +44,26 @@ public class TicketDAO {
             ps.setTimestamp(5, (ticket.getOutTime() == null)?null: (new Timestamp(ticket.getOutTime().getTime())) );
             return ps.execute();
         }catch (Exception ex){
-            logger.error("Error fetching next available slot",ex);
-        }finally {
-            dataBaseConfig.closeConnection(con);
+            logger.error("Error persisting ticket",ex);
             return false;
+        }finally { //The finally block will be executed even after a return statement in a method.
+            dataBaseConfig.closeConnection(con);
         }
     }
 
+    /**
+     * Does a query to get the ticket and associated (Foreign Key) parking slot number and type from given
+     * vehicle's registration number where out time is null and last time in (order desc, limit 1)
+     * "... where p.parking_number = t.parking_number and t.OUT_TIME IS NULL and t.VEHICLE_REG_NUMBER=? order by t.IN_TIME desc limit 1"
+     *  
+     * @param vehicle's registration number
+     * @return Ticket model object or null
+     */
     public Ticket getTicket(String vehicleRegNumber) {
         Connection con = null;
         Ticket ticket = null;
         try {
-            con = dataBaseConfig.getConnection();
+            con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
             PreparedStatement ps = con.prepareStatement(DBConstants.GET_TICKET);
             //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
             ps.setString(1,vehicleRegNumber);
@@ -63,28 +81,32 @@ public class TicketDAO {
             dataBaseConfig.closeResultSet(rs);
             dataBaseConfig.closePreparedStatement(ps);
         }catch (Exception ex){
-            logger.error("Error fetching next available slot",ex);
+            logger.error("Error getting ticket",ex);
         }finally {
             dataBaseConfig.closeConnection(con);
-            return ticket;
         }
+        return ticket; //can return a ticket = null 
     }
 
+    /**
+     * Upadates a given Ticket model's object
+     * @param ticket
+     * @return boolean : true = success or false = failure
+     */
     public boolean updateTicket(Ticket ticket) {
         Connection con = null;
         try {
-            con = dataBaseConfig.getConnection();
+            con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
             PreparedStatement ps = con.prepareStatement(DBConstants.UPDATE_TICKET);
             ps.setDouble(1, ticket.getPrice());
             ps.setTimestamp(2, new Timestamp(ticket.getOutTime().getTime()));
             ps.setInt(3,ticket.getId());
-            ps.execute();
-            return true;
+            return ps.execute();
         }catch (Exception ex){
             logger.error("Error saving ticket info",ex);
+            return false;
         }finally {
-            dataBaseConfig.closeConnection(con);
+            dataBaseConfig.closeConnection(con); //The finally block will be executed even after a return statement in a method.
         }
-        return false;
     }
 }

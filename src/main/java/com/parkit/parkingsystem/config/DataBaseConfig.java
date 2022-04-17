@@ -9,10 +9,24 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * This class helps DAO and factors :
+ *  - connection to SGBD (contains configurations)
+ *  - close ResultSet (used for queries)
+ *  - close PreparedStatement and connection
+ * @author Olivier MOREL
+ *
+ */
 public class DataBaseConfig {
 
     private static final Logger logger = LogManager.getLogger("DataBaseConfig");
 
+    /**
+     * To get connected to SGBD
+     * @return Connection to SGBD object
+     * @throws ClassNotFoundException
+     * @throws SQLException
+     */
     public Connection getConnection() throws ClassNotFoundException, SQLException {
         logger.info("Create DB connection");
         Class.forName("com.mysql.cj.jdbc.Driver");
@@ -20,6 +34,10 @@ public class DataBaseConfig {
                 "jdbc:mysql://localhost:3306/prod","root","rootroot");
     }
 
+    /**
+     * To close connection to SGBD
+     * @param con : Connection object
+     */
     public void closeConnection(Connection con){
         if(con!=null){
             try {
@@ -31,6 +49,10 @@ public class DataBaseConfig {
         }
     }
 
+    /**
+     * To close prepared statement
+     * @param ps : PreparedStatement object
+     */
     public void closePreparedStatement(PreparedStatement ps) {
         if(ps!=null){
             try {
@@ -42,6 +64,10 @@ public class DataBaseConfig {
         }
     }
 
+    /**
+     * To close result set statement (queries)
+     * @param rs : ResultSet object
+     */
     public void closeResultSet(ResultSet rs) {
         if(rs!=null){
             try {
