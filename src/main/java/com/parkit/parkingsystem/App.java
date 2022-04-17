@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import com.parkit.parkingsystem.service.InteractiveShell;
 
 /**
- * parking system's entry point for run into Eclipse
+ * parking system's entry point
  * @author Olivier MOREL
  *
  */
@@ -15,8 +15,8 @@ public class App {
     
     /**
      * Main method to launch the app.
-     * Call static method loadInterface() from InteractiveShell class
-     * in service package 
+     * Gets the only one instance of main controller InteractiveShell in service package
+     * Then can run instantiated methode loadInterface()  
      * @param args not used in this method
      */
     
