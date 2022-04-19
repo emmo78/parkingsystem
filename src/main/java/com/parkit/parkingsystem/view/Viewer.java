@@ -2,7 +2,7 @@ package com.parkit.parkingsystem.view;
 
 /**
  * View for MVC and help for portability
- * @author olivi
+ * @author Olivier MOREL
  *
  */
 public interface Viewer {

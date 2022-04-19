@@ -25,18 +25,22 @@ public class FareCalculatorService {
 
         double duration = (outHour - inHour) / (1000*3600); // from milliseconds to decimal hours with floating number minimal imprecision
 
-        switch (ticket.getParkingSpot().getParkingType()){
-            case CAR: {
-                ticket.setPrice(duration * Fare.CAR_RATE_PER_HOUR);
-                break;
-            }
-            case BIKE: {
-                ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR);
-                break;
-            }
-            default: { //Braces are optional but better readability 
-            	throw new IllegalArgumentException("Unkown Parking Type"); //Throw a java.lang.RuntimeException
-            }
+        try {
+	        switch (ticket.getParkingSpot().getParkingType()){ //When null show up in switch statement, Java will throw NullPointerException
+	            case CAR: {
+	                ticket.setPrice(duration * Fare.CAR_RATE_PER_HOUR);
+	                break;
+	            }
+	            case BIKE: {
+	                ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR);
+	                break;
+	            }
+	            default: { //Braces are optional but better readability 
+	            	throw new IllegalArgumentException("Unkown Parking Type"); //Throw a java.lang.RuntimeException
+	            }
+	        }
+        } catch(NullPointerException e) {
+        	throw new IllegalArgumentException("Type is null");
         }
     }
 }

@@ -1,14 +1,16 @@
 package com.parkit.parkingsystem.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * Ticket Model
- * @author olivi
+ * @author Olivier MOREL
  *
  */
 public class Ticket {
-    private int id;
+
+	private int id;
     private ParkingSpot parkingSpot; //Foreign Key
     private String vehicleRegNumber;
     private double price;
@@ -62,4 +64,5 @@ public class Ticket {
     public void setOutTime(Date outTime) {
         this.outTime = outTime;
     }
+    
 }
