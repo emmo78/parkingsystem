@@ -110,7 +110,7 @@ public class ParkingService {
         	viewer.println("Parking slots might be full");
         	logger.error("Error fetching next available parking slot", e);
         }
-        return parkingSpot;
+        return parkingSpot; //null if an exception occurs
     }
 
     /**
@@ -122,7 +122,7 @@ public class ParkingService {
     	viewer.println("Please select vehicle type from menu");
     	viewer.println("1 CAR");
     	viewer.println("2 BIKE");
-        int input = inputReaderUtil.readSelection();
+        int input = inputReaderUtil.readSelection(); //return -1 if an exception occurred
         switch(input){
             case 1: {
                 return ParkingType.CAR; //no break because return
