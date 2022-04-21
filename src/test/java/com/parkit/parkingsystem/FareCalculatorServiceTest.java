@@ -20,6 +20,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Date;
 
+/**
+ * Unit Test Class for FareCalculatorService
+ *  
+ * @author Olivier MOREL
+ *
+ */
 public class FareCalculatorServiceTest {
 
     private FareCalculatorService fareCalculatorService; //System Under Test
@@ -27,13 +33,22 @@ public class FareCalculatorServiceTest {
     private ParkingSpot parkingSpot; //Model = only data so don't mock
 	ParkingType parkingType; //enumeration can't be mocked
 
-
-    @BeforeEach
+    /**
+     * Before Each Test initialize Class Under Test and a Ticket's model pointer
+     */
+	@BeforeEach
     private void setUpPerTest() {
     	fareCalculatorService = new FareCalculatorService();
     	ticket = new Ticket();
     }
-    
+
+	/**
+     * After Each Test nullify :
+     *  - Class Under Test
+     *  - Ticket's model pointer
+     *  - ParkingSpot's model pointer (initialized in test methods)
+     *  - ParkingType's enumeration valor;
+     */
     @AfterEach
     private void undefPerTest() {
     	fareCalculatorService = null;
@@ -42,55 +57,71 @@ public class FareCalculatorServiceTest {
     	parkingType = null;
      }
 
-    @ParameterizedTest(name = "{0} minutes in park cost {1} x fare/h for {2} type")
+    /**
+     * Tests if method calculateFare gives corrects results
+     * with nominal cases
+     * @param min : how long the vehicle parks
+     * @param coefFare : = min/60 because rate/h
+     * @param type : vehicle's type
+     */
+    @ParameterizedTest(name = "{0} minutes in park should cost {1} x fare/h for {2} type")
     @CsvSource({"60,1,CAR","60,1,BIKE","45,0.75,CAR","45,0.75,BIKE","1440,24,CAR","1440,24,BIKE"}) //24*60=1440
     @DisplayName("Nominal cases")
-    public void calculateFareCar(int min, double coefFare, String type){
+    public void calculateFareNominalCasesTest(int min, double coefFare, String type){
     	
     	//Given
-    	Date inTime = new Date();
-    	Date outTime = new Date(System.currentTimeMillis() + (min * 60 * 1000));
-    	double fareType = 0;
+    	Date inTime = new Date(System.currentTimeMillis() - (min * 60 * 1000));
+    	Date outTime = new Date();
+    	double fareTypeRate = 0;
         
         switch(type) {
-        	case "CAR" : 
+        	case "CAR" : {
         		parkingType = ParkingType.CAR;
-        		fareType = Fare.CAR_RATE_PER_HOUR;
+        		fareTypeRate = Fare.CAR_RATE_PER_HOUR;
         		break;
-        	
-        	case "BIKE" : 
+        	}
+        	case "BIKE" : {
         		parkingType = ParkingType.BIKE;
-        		fareType = Fare.BIKE_RATE_PER_HOUR;
+        		fareTypeRate = Fare.BIKE_RATE_PER_HOUR;
         		break;
+        	}
         }
         
         parkingSpot = new ParkingSpot(1, parkingType, false);
+        ticket.setParkingSpot(parkingSpot);
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
-        ticket.setParkingSpot(parkingSpot);
         
         //When
         fareCalculatorService.calculateFare(ticket);
         
         //Then
-        assertThat(ticket.getPrice()).isEqualTo(coefFare*fareType); // or isCloseTo(double, Offset). 
+        assertThat(ticket.getPrice()).isEqualTo(coefFare*fareTypeRate); // or isCloseTo(double, Offset). 
     }
 
+    /**
+     * Nested Class for corner case's tests
+     * @author Olivier MOREL
+     *
+     */
     @Nested
     @Tag("Corner cases")
     @DisplayName("Corner cases")
     class cornerCases {
-        @Test
+        /**
+         * Calculate fare for a unknown vehicle's Type
+         * should throw an illegal argument exception
+         */
+    	@Test
         @DisplayName("Unknown vehicle's type")
-        public void calculateFareUnkownType(){
+        public void calculateFareUnknownTypeShouldThrowsIllegalArgumentException(){
         	//Given
-        	Date inTime = new Date();
-        	Date outTime = new Date(System.currentTimeMillis() + (60 * 60 * 1000));
+        	Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
+        	Date outTime = new Date();
         	parkingSpot = new ParkingSpot(1, null, false);
-
+            ticket.setParkingSpot(parkingSpot);
             ticket.setInTime(inTime);
             ticket.setOutTime(outTime);
-            ticket.setParkingSpot(parkingSpot);
             
             //When
             
@@ -98,7 +129,11 @@ public class FareCalculatorServiceTest {
             assertThrows(IllegalArgumentException.class, () -> fareCalculatorService.calculateFare(ticket));
         }
         
-        @Test
+        /**
+         * Bike with InTime after OutTime should throw
+         * an illegal argument exception
+         */
+    	@Test
         @DisplayName("Bike with InTime after OutTime")
         public void calculateFareBikeWithFutureInTime(){
         	//Given

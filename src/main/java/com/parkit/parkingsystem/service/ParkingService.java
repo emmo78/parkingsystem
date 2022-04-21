@@ -125,10 +125,10 @@ public class ParkingService {
         int input = inputReaderUtil.readSelection();
         switch(input){
             case 1: {
-                return ParkingType.CAR;
+                return ParkingType.CAR; //no break because return
             }
             case 2: {
-                return ParkingType.BIKE;
+                return ParkingType.BIKE; //no break because return
             }
             default: {
                 throw new IllegalArgumentException("Entered input is invalid"); //Throw a java.lang.RuntimeException 
@@ -153,7 +153,7 @@ public class ParkingService {
      public void processExitingVehicle() {
         try{
             String vehicleRegNumber = getVehichleRegNumber(); //Throws Exception if invalid input, Will be caught see catch
-            Ticket ticket = ticketDAO.getTicket(vehicleRegNumber); //can return a ticket = null 
+            Ticket ticket = ticketDAO.getTicket(vehicleRegNumber); //can return null 
             Date outTime = new Date();
             ticket.setOutTime(outTime); //if ticket = null throws a NullPointerException, Will be caught see catch
             fareCalculatorService.calculateFare(ticket); // Throws IllegalArgumentException, Will be caught see catch
@@ -161,6 +161,7 @@ public class ParkingService {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
                 parkingSpotDAO.updateParking(parkingSpot);
+                viewer.println("parkingSpotDAO.updateParking(parkingSpot);");
                 viewer.println("Please pay the parking fare:" + ticket.getPrice());
                 viewer.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
             }else{
