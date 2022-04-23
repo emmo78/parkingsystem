@@ -34,13 +34,13 @@ public class InputReaderUtil {
     }
 
     /**
-     * Tries to read frm input vehicle's registration number 
+     * Tries to read from input vehicle's registration number 
      * @return vehicule's registration number as a String
-     * @throws Exception if null or only blank space or invalid String input
+     * @throws IllegalArgumentException if null or only blank space or invalid String input
      */
     public String readVehicleRegistrationNumber() throws Exception {
         try {
-            String vehicleRegNumber = scan.nextLine();
+            String vehicleRegNumber = scan.nextLine(); //can throw NoSuchElementException or IllegalStateException 
             if(vehicleRegNumber == null || vehicleRegNumber.trim().length()==0) {
                 throw new IllegalArgumentException("Invalid input provided"); //Will be caught see catch
             }

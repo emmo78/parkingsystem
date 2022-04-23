@@ -24,7 +24,6 @@ public class FareCalculatorService {
         double outHour = ticket.getOutTime().getTime(); // January 1, 1970, 00:00:00 GMT represented by this Date object
 
         double duration = (outHour - inHour) / (1000*3600); // from milliseconds to decimal hours with floating number minimal imprecision
-
         try {
 	        switch (ticket.getParkingSpot().getParkingType()){ //When null show up in switch statement, Java will throw NullPointerException
 	            case CAR: {

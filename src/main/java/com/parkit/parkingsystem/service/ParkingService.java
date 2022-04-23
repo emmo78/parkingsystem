@@ -22,14 +22,14 @@ public class ParkingService {
 
     private static final Logger logger = LogManager.getLogger("ParkingService");
 
-    private static FareCalculatorService fareCalculatorService = new FareCalculatorService();
+    private FareCalculatorService fareCalculatorService = new FareCalculatorService();
 
     private InputReaderUtil inputReaderUtil;
     private ParkingSpotDAO parkingSpotDAO;
     private TicketDAO ticketDAO;
     private Viewer viewer; // Declare Viewer instance
 
-    /**
+	/**
      * Constructor
      * @param inputReaderUtil to read keyboard input and give an expected result
      * @param parkingSpotDAO for CRUD : Create, Read, Update and Delete on table parking
@@ -42,7 +42,7 @@ public class ParkingService {
         this.ticketDAO = ticketDAO;
         this.viewer = viewer;
     }
-
+    
     /**
      * Processing incoming vehicle : tries to get an available parking space (asks for vehicule's type)
      * then asks for vehicle's registered number, marks place occupied then creates a new model Ticket
@@ -161,7 +161,6 @@ public class ParkingService {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
                 parkingSpotDAO.updateParking(parkingSpot);
-                viewer.println("parkingSpotDAO.updateParking(parkingSpot);");
                 viewer.println("Please pay the parking fare:" + ticket.getPrice());
                 viewer.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
             }else{
@@ -172,4 +171,12 @@ public class ParkingService {
         	logger.error("Unable to process exiting vehicle",e);
         }
     }
+     /**
+      * To Inject Mock
+      * @param fareCalculatorService : mock
+      */
+     public void setFareCalculatorService(FareCalculatorService fareCalculatorService) {
+ 		this.fareCalculatorService = fareCalculatorService;
+ 	}
+
 }
