@@ -55,9 +55,12 @@ public class ParkingService {
                 String vehicleRegNumber = getVehichleRegNumber(); //Throws Exception if invalid input, Will be caught see catch
                 parkingSpot.setAvailable(false);
                 parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark it's availability as false
+                // WARNING What to do if it fails ? In DAO : logger.error("Error updating parking info",ex);
+
                 /* Needs computer standards are defined in terms of Greenwich mean time (GMT)
                  * to prevent summer/winter timetable changes if the car park is used at night
                  * but will need a time zone offset to display in LocalDateTime */
+
                 Date inTime = new Date();
                 Ticket ticket = new Ticket();
                 //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
@@ -68,6 +71,8 @@ public class ParkingService {
                 ticket.setInTime(inTime);
                 ticket.setOutTime(null);
                 ticketDAO.saveTicket(ticket);
+                // WARNING What to do if it fails ? In DAO : logger.error("Error persisting ticket",ex);
+                
                 viewer.println("Generated Ticket and saved in DB");
                 viewer.println("Please park your vehicle in spot number:"+parkingSpot.getId());
                 viewer.println("Recorded in-time for vehicle number:"+vehicleRegNumber+" is:"+inTime);
@@ -159,8 +164,8 @@ public class ParkingService {
             fareCalculatorService.calculateFare(ticket); // Throws IllegalArgumentException, Will be caught see catch
             if(ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
-                parkingSpot.setAvailable(true);
-                parkingSpotDAO.updateParking(parkingSpot);
+                parkingSpot.setAvailable(true); //setup after ticket's update
+                parkingSpotDAO.updateParking(parkingSpot); //if fails not persisted but ticket persisted ...
                 viewer.println("Please pay the parking fare:" + ticket.getPrice());
                 viewer.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
             }else{

@@ -52,7 +52,7 @@ public class ParkingServiceTest {
     private TicketDAO ticketDAO;
     @Mock
     private FareCalculatorService fareCalculatorService; //Will be injected by setter in ParkingService
-    // For Isolated, FareCalculatorService has a unit test class
+    // For isolation, FareCalculatorService has a unit test class
     
     private Viewer viewer; //Can't mock console display
     
@@ -155,18 +155,18 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(any(Ticket.class));
 	        
 	        //Asserts the arguments are good
-	        if(parkingSpotDAOGetTimes == 1) {
+	        if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!"
 		        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
 	        	assertThat(parkingTypeCaptor.getValue().toString()).isEqualTo(type);
 	        }
 	
-	        if(parkingSpotDAOUpdateTimes == 1) {
+	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!"
 	       	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
 	        	assertThat(parkingSpotCaptor.getValue()).
 	        		usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.valueOf(type), false));
 	        }
 	        
-	        if(ticketDAOSaveTimes == 1) {
+	        if(ticketDAOSaveTimes == 1) { // To avoid having "No argument value was captured!"
 		        Date expectedInTime = new Date();
 	        	verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
@@ -183,7 +183,7 @@ public class ParkingServiceTest {
 	        			ParkingType.valueOf(type),
 	        			false,
 	        			regNumber,
-	        			0D, //D cast to double because can't use ','
+	        			0D, //D to cast to double because can't use ','
 	        			expectedInTime.toString().substring(0,17), // = "dow mon dd hh:mm:", 
 	        			null);
 	        }
@@ -253,25 +253,33 @@ public class ParkingServiceTest {
 	        verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
 
 	        //Asserts the arguments are good
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	        
 	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
         	assertThat(ticketCaptor.getValue())
         		.extracting(
         			ticket -> ticket.getParkingSpot().getId(),
         			ticket -> ticket.getParkingSpot().getParkingType(),
         			ticket -> ticket.getParkingSpot().isAvailable(),
-        			ticket -> ticket.getVehicleRegNumber())
+        			ticket -> ticket.getVehicleRegNumber(),
+        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
         		.containsExactly(
         			1,
         			ParkingType.valueOf("CAR"),
         			true, // (1)
-        			"REGNUM");
+        			"REGNUM",
+        			"1.50"); // results of duration x rate
 	        /* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
-	         * after ticket's update to SGBD but there is no persistence for objects in code ...*/	        
+	         * after ticket's update to SGBD which contains a FK to parking index (PK)*/
+
+        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
+        	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
     	}
 	}
 
 	/**
-     * Nested Class for corner case's tests
+     * Nested Class for corner case's tests for an incoming vehicle
      * @author Olivier MOREL
      *
      */
@@ -285,7 +293,7 @@ public class ParkingServiceTest {
          */
     	@Test
         @DisplayName("Unknown vehicle's type")
-        public void processIncomingVehicleForUnknownTypeShouldUseOnly1TimeInputReaderUtil(){
+        public void processIncomingVehicleForUnknownTypeShouldUseOnlyOneTimeInputReaderUtil(){
         	//GIVEN
     		int inputReaderUtilReadSelectTimes = 0;
         	int parkingSpotDAOGetTimes = 0;
@@ -295,8 +303,8 @@ public class ParkingServiceTest {
 
     		when(inputReaderUtil.readSelection()).thenReturn(-1);
         	inputReaderUtilReadSelectTimes++; //=1
-    		/*Else shouldn't be used
-        	 *and returns to menu, doesn't use DAOs at all and IllegalArgumentException caught*/
+    		/*Else shouldn't be used, comes back to menu,
+        	 *doesn't use DAOs at all and IllegalArgumentException caught*/
 
             //WHEN & Asserts that Exception was caught
             assertDoesNotThrow(() -> parkingService.processIncomingVehicle());
@@ -320,7 +328,7 @@ public class ParkingServiceTest {
          */
     	@Test
         @DisplayName("Parking's slots full")
-        public void processIncomingVehicleParkingSlotsFull(){
+        public void processIncomingVehicleParkingSlotsFullShouldUseOneTimeInputReaderAndParkingDAO(){
         	//GIVEN
     		int inputReaderUtilReadSelectTimes = 0;
         	int parkingSpotDAOGetTimes = 0;
@@ -336,7 +344,7 @@ public class ParkingServiceTest {
     		//parkingTypeCaptor picked up 1 ParkingType's element
         	
     		/*Else shouldn't be used
-        	 *and returns to menu, use DAO to read data and Exception caught*/
+        	 *and comes back to menu, use DAO to read data and Exception caught*/
 
             //WHEN & Asserts that Exception was caught
             assertDoesNotThrow(() -> parkingService.processIncomingVehicle());
@@ -362,11 +370,11 @@ public class ParkingServiceTest {
     	
         /**
          * For invalid vehicle's registration number, method processIncomingVehicle should only use
-         * one time InputReaderUtil, ParkingSpotDAO and nothing else
+         * one time InputReaderUtil, ParkingSpotDAO (read data) and nothing else
          */
     	@Test
         @DisplayName("Vehicle's registration number is invalid")
-        public void processIncomingVehicleRegNumberInvalid(){
+        public void processIncomingVehicleRegNumberInvalidShouldUseOneTimeInputReaderAndParkingDAO(){
         	//GIVEN
     		int inputReaderUtilReadSelectTimes = 0;
         	int parkingSpotDAOGetTimes = 0;
@@ -389,7 +397,7 @@ public class ParkingServiceTest {
         	inputReaderUtilReadRegNumTimes++; //=1
         	
        		/*Else shouldn't be used
-        	 *and returns to menu, use DAO to read data and Exception caught*/
+        	 *and comes back to menu, use DAO to read data and Exception caught*/
 
             //WHEN & Asserts that Exception was caught
             assertDoesNotThrow(() -> parkingService.processIncomingVehicle());
@@ -414,70 +422,333 @@ public class ParkingServiceTest {
     	}	
     }
     
-    @Nested
-    @Tag("CornerCasesExitingVehicle")
-    @DisplayName("Corner cases exiting vehicle")
-    class cornerCasesExitingVehicle {
+	/**
+	 * Nested Class for corner case's tests for an exiting vehicle
+	 * @author Olivier MOREL
+	 *
+	 */
+	 @Nested
+	 @Tag("CornerCasesExitingVehicle")
+	 @DisplayName("Corner cases exiting vehicle")
+	 class cornerCasesExitingVehicle {
     	
-    }
+		/**
+	    * For invalid vehicle's registration number, method processExitingVehicle should only use
+	    * one time InputReaderUtil and nothing else
+	    */
+		@Test
+	    @DisplayName("Vehicle's registration number is invalid")
+	    public void processExitingVehicleRegNumberInvalidShouldNotUseDAOAndReturnToMenu(){
+	    	//GIVEN
+	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int ticketDAOGetTimes = 0;
+	    	int fareCalculatorServiceTimes = 0;
+	    	int ticketDAOUpdateTimes = 0;
+	    	int parkingSpotDAOUpdateTimes = 0;
+	    	
+	    	try {
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new IllegalArgumentException("Invalid input provided"));
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+	    	inputReaderUtilReadRegNumTimes++; //=1
+	    	/*Else shouldn't be used, comes back to menu,
+	    	 *doesn't use DAO at all and IllegalArgumentException caught*/
+	    	
+	        //WHEN & Asserts that Exception was caught
+	        assertDoesNotThrow(() -> parkingService.processExitingVehicle());
+	        
+	        //THEN
+	        //Verify mocks are used or never
+	        try {
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
+	        verify(fareCalculatorService, times(fareCalculatorServiceTimes)).calculateFare(any(Ticket.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(any(Ticket.class));
+	        verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+		}
+		
+	    /**
+	     * TicketDAO getTicket returns a null. Method processExitingVehicle should throw a NullPointerException
+	     * trying to setOutTime to a null ticket. It'll be caught before comes back to menu.
+	     */
+		@Test
+	    @DisplayName("getTicket return a null")
+	    public void processExitingVehicleGetTicketReturnNullShouldUseOneTimeInputReaderAndTicketDAO(){
+	    	//GIVEN
+	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int ticketDAOGetTimes = 0;
+	    	int fareCalculatorServiceTimes = 0;
+	    	int ticketDAOUpdateTimes = 0;
+	    	int parkingSpotDAOUpdateTimes = 0;
+	    	
+			try {
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+	    	inputReaderUtilReadRegNumTimes++; //=1
+	    	
+            when(ticketDAO.getTicket(any(String.class))).thenReturn(null);
+            ticketDAOGetTimes++; //= 1;
+            //stringCaptor picked up "REGNUM"
+
+	    	/*Else shouldn't be used. Use TicketDAO to read and NullPointerException will be caught,
+	    	 * before comes back to menu */
+	    	
+	        //WHEN & Asserts that Exception was caught
+	        assertDoesNotThrow(() -> parkingService.processExitingVehicle());
+	        
+	        //THEN
+	        //Verify mocks are used or never
+	        try {
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
+	        verify(fareCalculatorService, times(fareCalculatorServiceTimes)).calculateFare(any(Ticket.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(any(Ticket.class));
+	        verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+	        
+	        //Asserts the arguments are good
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	        
+		}
+		
+	    /**
+	     * FareCalculatorService throws an IllegalArgumentException. It'll be caught before come back to menu.
+	     * TicketDAO and ParkingDAO shoudn't be used to update.
+	     */
+		@Test
+	    @DisplayName("FareCalculatorService throws an IllegalArgumentException")
+	    public void processExitingVehicleAndFareCalculatorThrowsExceptionShouldNotUseDAOUpdatingNoThrowsEsxception(){
+	    	//GIVEN
+	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int ticketDAOGetTimes = 0;
+	    	int fareCalculatorServiceTimes = 0;
+	    	int ticketDAOUpdateTimes = 0;
+	    	int parkingSpotDAOUpdateTimes = 0;
+	    	
+			try {
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+	    	inputReaderUtilReadRegNumTimes++; //=1
+	    	
+	    	Ticket ticketGiven = new Ticket();
+    		ticketGiven.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
+            ticketGiven.setVehicleRegNumber("REGNUM");
+            ticketGiven.setPrice(0);
+            ticketGiven.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
+            ticketGiven.setOutTime(null);
+            when(ticketDAO.getTicket(any(String.class))).thenReturn(ticketGiven);
+            ticketDAOGetTimes++; //= 1;
+            //stringCaptor picked up "REGNUM"
+   	    	
+            doThrow(new IllegalArgumentException()).when(fareCalculatorService).calculateFare(any(Ticket.class));
+            fareCalculatorServiceTimes++; //=1
+            /*IllegalArgumentException() will be caught, else shouldn't be used.
+             * Comes back to menu */
+	    	
+	        //WHEN & Asserts that Exception was caught
+	        assertDoesNotThrow(() -> parkingService.processExitingVehicle());
+	        
+	        //THEN
+	        //Verify mocks are used or never
+	        try {
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
+	        verify(fareCalculatorService, times(fareCalculatorServiceTimes)).calculateFare(any(Ticket.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(any(Ticket.class));
+	        verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+
+	        //Asserts the arguments are good
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+		}
+		
+	    /**
+	     * TicketDAO update ticket return false. "Unable to update ticket information. Error occurred"
+	     *  will be shown before comes back to menu. ParkingDAO shoudn't be used to update
+	     */
+		@Test
+	    @DisplayName("Uptating ticketFail")
+	    public void processExitingVehicleUpdatingTicketFalseShouldNotUseDAOUpdatingParkingNoThrowsEsxception(){
+	    	//GIVEN
+	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int ticketDAOGetTimes = 0;
+	    	int fareCalculatorServiceTimes = 0;
+	    	int ticketDAOUpdateTimes = 0;
+	    	int parkingSpotDAOUpdateTimes = 0;
+	    	
+			try {
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+	    	inputReaderUtilReadRegNumTimes++; //=1
+	    	
+	    	Ticket ticketGiven = new Ticket();
+    		ticketGiven.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
+            ticketGiven.setVehicleRegNumber("REGNUM");
+            ticketGiven.setPrice(0);
+            ticketGiven.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
+            ticketGiven.setOutTime(null);
+            when(ticketDAO.getTicket(any(String.class))).thenReturn(ticketGiven);
+            ticketDAOGetTimes++; //= 1;
+            //stringCaptor picked up "REGNUM"
+   	    	
+            doAnswer(invocation -> {
+            	Ticket ticket = invocation.getArgument(0, Ticket.class);
+            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600D) ) * Fare.CAR_RATE_PER_HOUR);
+            	return null;})
+            	.when(fareCalculatorService).calculateFare(any(Ticket.class));
+            fareCalculatorServiceTimes++; //=1
+            //ticketCaptor picked up ticket with out time set by CUT and price set by doAnswer
+            
+            when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(false);
+            ticketDAOUpdateTimes++; //= 1
+            //ticketCaptor picked up ticket from another method
+
+            /* ParkingDAO shoudn't be used to update. Comes back to menu */
+	    	
+	        //WHEN & Asserts that Exception was caught
+	        assertDoesNotThrow(() -> parkingService.processExitingVehicle());
+	        
+	        //THEN
+	        //Verify mocks are used or never
+	        try {
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
+	        verify(fareCalculatorService, times(fareCalculatorServiceTimes)).calculateFare(any(Ticket.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(any(Ticket.class));
+	        verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+	        
+	        //Asserts the arguments are good
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+
+			verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+        	assertThat(ticketCaptor.getValue())
+        		.extracting(
+        			ticket -> ticket.getParkingSpot().getId(),
+        			ticket -> ticket.getParkingSpot().getParkingType(),
+        			ticket -> ticket.getParkingSpot().isAvailable(),
+        			ticket -> ticket.getVehicleRegNumber(),
+        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+        		.containsExactly(
+        			1,
+        			ParkingType.valueOf("CAR"),
+        			false, // (1)
+        			"REGNUM",
+        			"1.50"); // results of duration x rate
+	        /* (1) not true because ParkingSpot's method setAvailable won't be used */
+		}
+	    /**
+	     * ParkingDAO update parking fail (return false). No test is down !!! 
+	     * Comes back to menu. Don't show any error message !!!
+	     */
+		@Test
+	    @DisplayName("ParkingDAO update parking fail")
+	    public void processExitingVehicleUpdatingParkingDAOUpdateParkingFails(){
+	    	//GIVEN
+	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int ticketDAOGetTimes = 0;
+	    	int fareCalculatorServiceTimes = 0;
+	    	int ticketDAOUpdateTimes = 0;
+	    	int parkingSpotDAOUpdateTimes = 0;
+	    	
+			try {
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+	    	inputReaderUtilReadRegNumTimes++; //=1
+	    	
+	    	Ticket ticketGiven = new Ticket();
+    		ticketGiven.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
+            ticketGiven.setVehicleRegNumber("REGNUM");
+            ticketGiven.setPrice(0);
+            ticketGiven.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
+            ticketGiven.setOutTime(null);
+            when(ticketDAO.getTicket(any(String.class))).thenReturn(ticketGiven);
+            ticketDAOGetTimes++; //= 1;
+            //stringCaptor picked up "REGNUM"
+   	    	
+            doAnswer(invocation -> {
+            	Ticket ticket = invocation.getArgument(0, Ticket.class);
+            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600D) ) * Fare.CAR_RATE_PER_HOUR);
+            	return null;})
+            	.when(fareCalculatorService).calculateFare(any(Ticket.class));
+            fareCalculatorServiceTimes++; //=1
+            //ticketCaptor picked up ticket with out time set by CUT and price set by doAnswer
+            
+            when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
+            ticketDAOUpdateTimes++; //= 1
+            //ticketCaptor picked up ticket from another method
+
+            when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(false); //return false
+            parkingSpotDAOUpdateTimes++; //=1
+            //parkingSpotCaptor picked up the ParkingSpot's object with available set to true !
+	    	
+	        //WHEN & Asserts that Exception was caught
+	        assertDoesNotThrow(() -> parkingService.processExitingVehicle());
+	        
+	        //THEN
+	        //Verify mocks are used or never
+	        try {
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
+	        verify(fareCalculatorService, times(fareCalculatorServiceTimes)).calculateFare(any(Ticket.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(any(Ticket.class));
+	        verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
+	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+	        
+	        //Asserts the arguments are good
+	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+
+			verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+        	assertThat(ticketCaptor.getValue())
+        		.extracting(
+        			ticket -> ticket.getParkingSpot().getId(),
+        			ticket -> ticket.getParkingSpot().getParkingType(),
+        			ticket -> ticket.getParkingSpot().isAvailable(),
+        			ticket -> ticket.getVehicleRegNumber(),
+        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+        		.containsExactly(
+        			1,
+        			ParkingType.valueOf("CAR"),
+        			true, // (1)
+        			"REGNUM",
+        			"1.50"); // results of duration x rate
+	        /* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
+	         * after ticket's update to SGBD which contains a FK to parking index (PK).
+	         * But parking update fails, so not persisted in SGBD !!!
+	         * So we'll have a persisted Ticket with outTime and price set but with a FK to a parking's number (PK)
+	         * with availability set to false !!!*/
+
+			verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
+        	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
+		}
+	}
 }
-/*  , " ", "FareThrowsE" , "UptDAOTicketFail" ,
-
-case "FareThrowsE" :
-	when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber);
-	inputReaderUtilReadRegNumTimes = 1;
-	parkingSpot = new ParkingSpot(1, ParkingType.CAR,true);
-	ticket.setParkingSpot(parkingSpot);
-    ticket.setVehicleRegNumber(regNumber);
-    ticket.setPrice(0);
-    ticket.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
-    ticket.setOutTime(new Date());
-    
-	when(ticketDAO.getTicket(regNumber)).thenReturn(ticket);
-	ticketDAOGetTimes = 1;
-    ticketCaptor = ArgumentCaptor.forClass(Ticket.class);
-
-    lenient().doThrow(new IllegalArgumentException()).when(fareCalculatorService).calculateFare(ticket);
-    fareCalculatorServiceTimes = 1;
-    /* ticketCaptor already initialized so ticket picked up twice
-       -> exception caught then returns to menu, doesn't use DAOs to Create or Update *//*
-	break;
-	
-case "UptDAOTicketFail" :
-	when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber);
-	inputReaderUtilReadRegNumTimes = 1;
-	parkingSpot = new ParkingSpot(1, ParkingType.CAR,true);
-	ticket.setParkingSpot(parkingSpot);
-    ticket.setVehicleRegNumber(regNumber);
-    ticket.setPrice(0);
-    ticket.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
-    ticket.setOutTime(new Date());
-    
-	when(ticketDAO.getTicket(regNumber)).thenReturn(ticket);
-	ticketDAOGetTimes = 1;
-    ticketCaptor = ArgumentCaptor.forClass(Ticket.class);
-
-    fareCalculatorService.calculateFare(ticket); //void methods on mocks do nothing by default https://javadoc.io/static/org.mockito/mockito-core/4.5.0/org/mockito/Mockito.html#doNothing--
-    fareCalculatorServiceTimes = 1;
-    //ticketCaptor already initialized
-    ticket.setPrice(1.5);
-    
-    when(ticketDAO.updateTicket(ticket)).thenReturn(false);
-    ticketDAOUpdateTimes = 1;
-    /* ticketCaptor already initialized so ticket picked up 3 times
-       -> then returns to menu, uses DAO to Update but fails *//*
-	break;
-	
-default :
-	when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new IllegalArgumentException("Invalid input provided"));
-	// -> exception caught then return to menu, doesn't use DAOs at all
-}
-} catch (Exception e) {
-e.printStackTrace();
-// throw  new RuntimeException("Failed to set up test mock objects");
-}
-
-//THEN
-
-//verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
-} */

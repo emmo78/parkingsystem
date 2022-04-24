@@ -96,7 +96,7 @@ public class FareCalculatorServiceTest {
         fareCalculatorService.calculateFare(ticket);
         
         //Then
-        assertThat(ticket.getPrice()).isEqualTo(coefFare*fareTypeRate); // or isCloseTo(double, Offset). 
+        assertThat(ticket.getPrice()).isEqualTo(coefFare*fareTypeRate); // or isCloseTo(double, withinPercentage(0.01)). 
     }
 
     /**
