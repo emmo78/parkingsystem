@@ -69,7 +69,7 @@ public class FareCalculatorServiceTest {
     @DisplayName("Nominal cases")
     public void calculateFareNominalCasesTest(int min, double coefFare, String type){
     	
-    	//Given
+    	//GIVEN
     	Date inTime = new Date(System.currentTimeMillis() - (min * 60 * 1000));
     	Date outTime = new Date();
     	double fareTypeRate = 0;
@@ -92,10 +92,10 @@ public class FareCalculatorServiceTest {
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         
-        //When
+        //WHEN
         fareCalculatorService.calculateFare(ticket);
         
-        //Then
+        //THEN
         assertThat(ticket.getPrice()).isEqualTo(coefFare*fareTypeRate); // or isCloseTo(double, withinPercentage(0.01)). 
     }
 

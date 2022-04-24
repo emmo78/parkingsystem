@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 public class ParkingServiceTest {
 
 	@InjectMocks
-	private ParkingService parkingService; //Class Under Test
+	private ParkingService parkingService; //Class Under Test = CUT
 
     @Mock
     private InputReaderUtil inputReaderUtil;
@@ -52,9 +52,9 @@ public class ParkingServiceTest {
     private TicketDAO ticketDAO;
     @Mock
     private FareCalculatorService fareCalculatorService; //Will be injected by setter in ParkingService
-    // For isolation, FareCalculatorService has a unit test class
+    // For isolation, FareCalculatorService already has a unit test class
     
-    private Viewer viewer; //Can't mock console display
+    private Viewer viewer; //Console display
     
     ArgumentCaptor<ParkingType> parkingTypeCaptor;
 	ArgumentCaptor<ParkingSpot> parkingSpotCaptor;
@@ -87,6 +87,7 @@ public class ParkingServiceTest {
     	parkingTypeCaptor = null;
     	parkingSpotCaptor = null;
     	ticketCaptor = null;
+    	stringCaptor = null;
      }
     
     /**
@@ -155,18 +156,18 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(any(Ticket.class));
 	        
 	        //Asserts the arguments are good
-	        if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!"
+	        if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 		        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
 	        	assertThat(parkingTypeCaptor.getValue().toString()).isEqualTo(type);
 	        }
 	
-	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!"
+	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 	       	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
 	        	assertThat(parkingSpotCaptor.getValue()).
 	        		usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.valueOf(type), false));
 	        }
 	        
-	        if(ticketDAOSaveTimes == 1) { // To avoid having "No argument value was captured!"
+	        if(ticketDAOSaveTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 		        Date expectedInTime = new Date();
 	        	verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
@@ -176,7 +177,7 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
 	        			ticket -> ticket.getPrice(),
-	        			ticket -> ticket.getInTime().toString().substring(0,17), //to avoid imprecision on few seconds
+	        			ticket -> ticket.getInTime().toString().substring(0,17), //To avoid imprecision on few seconds
 	        			ticket -> ticket.getOutTime())
 	        		.containsExactly(
 	        			1,
@@ -184,7 +185,7 @@ public class ParkingServiceTest {
 	        			false,
 	        			regNumber,
 	        			0D, //D to cast to double because can't use ','
-	        			expectedInTime.toString().substring(0,17), // = "dow mon dd hh:mm:", 
+	        			expectedInTime.toString().substring(0,17), // = "dow mon dd hh:mm:" 
 	        			null);
 	        }
 	    }
@@ -253,28 +254,32 @@ public class ParkingServiceTest {
 	        verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
 
 	        //Asserts the arguments are good
-	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
-	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
-	        
-	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
-        	assertThat(ticketCaptor.getValue())
-        		.extracting(
-        			ticket -> ticket.getParkingSpot().getId(),
-        			ticket -> ticket.getParkingSpot().getParkingType(),
-        			ticket -> ticket.getParkingSpot().isAvailable(),
-        			ticket -> ticket.getVehicleRegNumber(),
-        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
-        		.containsExactly(
-        			1,
-        			ParkingType.valueOf("CAR"),
-        			true, // (1)
-        			"REGNUM",
-        			"1.50"); // results of duration x rate
-	        /* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
-	         * after ticket's update to SGBD which contains a FK to parking index (PK)*/
-
-        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
-        	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	        }
+	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+		        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+	        	assertThat(ticketCaptor.getValue())
+	        		.extracting(
+	        			ticket -> ticket.getParkingSpot().getId(),
+	        			ticket -> ticket.getParkingSpot().getParkingType(),
+	        			ticket -> ticket.getParkingSpot().isAvailable(),
+	        			ticket -> ticket.getVehicleRegNumber(),
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+	        		.containsExactly(
+	        			1,
+	        			ParkingType.valueOf("CAR"),
+	        			true, // (1)
+	        			"REGNUM",
+	        			"1.50"); // results of duration x rate
+				        /* (1) ticket parkingSpot field is a pointer to the object which field isAvailable is set from false to true
+				         * after ticket's update to SGBD (which contains a FK to parking index (PK))*/
+	        }
+	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
+	        	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
+	        }
     	}
 	}
 
@@ -362,7 +367,7 @@ public class ParkingServiceTest {
             verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(any(Ticket.class));
             
             //Assert the arguments are good
-            if(parkingSpotDAOGetTimes == 1) {
+            if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
     	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
             	assertThat(parkingTypeCaptor.getValue().toString()).isEqualTo("CAR");
             }
@@ -395,9 +400,8 @@ public class ParkingServiceTest {
 				e1.printStackTrace();
 			}
         	inputReaderUtilReadRegNumTimes++; //=1
-        	
        		/*Else shouldn't be used
-        	 *and comes back to menu, use DAO to read data and Exception caught*/
+        	 *and comes back to menu, used DAO to read data and Exception caught*/
 
             //WHEN & Asserts that Exception was caught
             assertDoesNotThrow(() -> parkingService.processIncomingVehicle());
@@ -415,7 +419,7 @@ public class ParkingServiceTest {
             verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(any(Ticket.class));
             
             //Assert the arguments are good
-            if(parkingSpotDAOGetTimes == 1) {
+            if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
     	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
             	assertThat(parkingTypeCaptor.getValue().toString()).isEqualTo("CAR");
             }
@@ -493,7 +497,7 @@ public class ParkingServiceTest {
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
 	    	
-            when(ticketDAO.getTicket(any(String.class))).thenReturn(null);
+            when(ticketDAO.getTicket(any(String.class))).thenReturn(null); // mocks return null by default!
             ticketDAOGetTimes++; //= 1;
             //stringCaptor picked up "REGNUM"
 
@@ -517,8 +521,10 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        
 	        //Asserts the arguments are good
-	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
-	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	        }
 	        
 		}
 		
@@ -575,8 +581,10 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 
 	        //Asserts the arguments are good
-	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
-	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	        }
 		}
 		
 	    /**
@@ -641,25 +649,29 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        
 	        //Asserts the arguments are good
-	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
-	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
-
-			verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
-        	assertThat(ticketCaptor.getValue())
-        		.extracting(
-        			ticket -> ticket.getParkingSpot().getId(),
-        			ticket -> ticket.getParkingSpot().getParkingType(),
-        			ticket -> ticket.getParkingSpot().isAvailable(),
-        			ticket -> ticket.getVehicleRegNumber(),
-        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
-        		.containsExactly(
-        			1,
-        			ParkingType.valueOf("CAR"),
-        			false, // (1)
-        			"REGNUM",
-        			"1.50"); // results of duration x rate
-	        /* (1) not true because ParkingSpot's method setAvailable won't be used */
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	        }
+	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+				verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+	        	assertThat(ticketCaptor.getValue())
+	        		.extracting(
+	        			ticket -> ticket.getParkingSpot().getId(),
+	        			ticket -> ticket.getParkingSpot().getParkingType(),
+	        			ticket -> ticket.getParkingSpot().isAvailable(),
+	        			ticket -> ticket.getVehicleRegNumber(),
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+	        		.containsExactly(
+	        			1,
+	        			ParkingType.valueOf("CAR"),
+	        			false, // (1)
+	        			"REGNUM",
+	        			"1.50"); // results of duration x rate
+		        /* (1) not true because ParkingSpot's method setAvailable won't be used */
+	        }
 		}
+		
 	    /**
 	     * ParkingDAO update parking fail (return false). No test is down !!! 
 	     * Comes back to menu. Don't show any error message !!!
@@ -707,7 +719,7 @@ public class ParkingServiceTest {
             parkingSpotDAOUpdateTimes++; //=1
             //parkingSpotCaptor picked up the ParkingSpot's object with available set to true !
 	    	
-	        //WHEN & Asserts that Exception was caught
+	        //WHEN & Asserts no Exception was thrown
 	        assertDoesNotThrow(() -> parkingService.processExitingVehicle());
 	        
 	        //THEN
@@ -724,31 +736,35 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        
 	        //Asserts the arguments are good
-	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
-	        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
-
-			verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
-        	assertThat(ticketCaptor.getValue())
-        		.extracting(
-        			ticket -> ticket.getParkingSpot().getId(),
-        			ticket -> ticket.getParkingSpot().getParkingType(),
-        			ticket -> ticket.getParkingSpot().isAvailable(),
-        			ticket -> ticket.getVehicleRegNumber(),
-        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
-        		.containsExactly(
-        			1,
-        			ParkingType.valueOf("CAR"),
-        			true, // (1)
-        			"REGNUM",
-        			"1.50"); // results of duration x rate
-	        /* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
-	         * after ticket's update to SGBD which contains a FK to parking index (PK).
-	         * But parking update fails, so not persisted in SGBD !!!
-	         * So we'll have a persisted Ticket with outTime and price set but with a FK to a parking's number (PK)
-	         * with availability set to false !!!*/
-
-			verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
-        	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	        }
+	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+		        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+	        	assertThat(ticketCaptor.getValue())
+	        		.extracting(
+	        			ticket -> ticket.getParkingSpot().getId(),
+	        			ticket -> ticket.getParkingSpot().getParkingType(),
+	        			ticket -> ticket.getParkingSpot().isAvailable(),
+	        			ticket -> ticket.getVehicleRegNumber(),
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+	        		.containsExactly(
+	        			1,
+	        			ParkingType.valueOf("CAR"),
+	        			true, // (1)
+	        			"REGNUM",
+	        			"1.50"); // results of duration x rate
+			        	/* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
+				         * after ticket's update to SGBD which contains a FK to parking index (PK).
+				         * But parking update fails, so not persisted in SGBD !!!
+				         * So we'll have a persisted Ticket with outTime and price set but with a FK to a parking's number (PK)
+				         * with availability set to false !!!*/
+	        }
+	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
+	        	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
+	        }
 		}
 	}
 }
