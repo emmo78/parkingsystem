@@ -15,7 +15,7 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 
 /**
  * Reads (query) and Updates on table parking 
- * @author olivi
+ * @author Olivier MOREL
  *
  */
 public class ParkingSpotDAO {

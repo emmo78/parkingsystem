@@ -101,7 +101,8 @@ public class TicketDAO {
             ps.setDouble(1, ticket.getPrice());
             ps.setTimestamp(2, new Timestamp(ticket.getOutTime().getTime()));
             ps.setInt(3,ticket.getId());
-            return ps.execute();
+            ps.execute();
+            return true;
         }catch (Exception ex){
             logger.error("Error saving ticket info",ex);
             return false;

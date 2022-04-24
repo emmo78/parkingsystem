@@ -22,14 +22,14 @@ public class ParkingService {
 
     private static final Logger logger = LogManager.getLogger("ParkingService");
 
-    private static FareCalculatorService fareCalculatorService = new FareCalculatorService();
+    private FareCalculatorService fareCalculatorService = new FareCalculatorService();
 
     private InputReaderUtil inputReaderUtil;
     private ParkingSpotDAO parkingSpotDAO;
     private TicketDAO ticketDAO;
     private Viewer viewer; // Declare Viewer instance
 
-    /**
+	/**
      * Constructor
      * @param inputReaderUtil to read keyboard input and give an expected result
      * @param parkingSpotDAO for CRUD : Create, Read, Update and Delete on table parking
@@ -42,7 +42,7 @@ public class ParkingService {
         this.ticketDAO = ticketDAO;
         this.viewer = viewer;
     }
-
+    
     /**
      * Processing incoming vehicle : tries to get an available parking space (asks for vehicule's type)
      * then asks for vehicle's registered number, marks place occupied then creates a new model Ticket
@@ -52,12 +52,15 @@ public class ParkingService {
         try{
             ParkingSpot parkingSpot = getNextParkingNumberIfAvailable(); //Declare and try to get a available ParkingSpot model
             if(parkingSpot !=null && parkingSpot.getId() > 0){
-                String vehicleRegNumber = getVehichleRegNumber(); //Throws Exception if invalid input, Will be caught see catch
+                String vehicleRegNumber = getVehichleRegNumber(); //Throws Exception if invalid input, will be caught see catch
                 parkingSpot.setAvailable(false);
                 parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark it's availability as false
+                // !!! WARNING What to do if it returns false ? In DAO : logger.error("Error updating parking info",ex)
+
                 /* Needs computer standards are defined in terms of Greenwich mean time (GMT)
                  * to prevent summer/winter timetable changes if the car park is used at night
                  * but will need a time zone offset to display in LocalDateTime */
+
                 Date inTime = new Date();
                 Ticket ticket = new Ticket();
                 //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
@@ -68,6 +71,8 @@ public class ParkingService {
                 ticket.setInTime(inTime);
                 ticket.setOutTime(null);
                 ticketDAO.saveTicket(ticket);
+                // !!! WARNING What to do if it returns false ? In DAO : logger.error("Error persisting ticket",ex);
+                
                 viewer.println("Generated Ticket and saved in DB");
                 viewer.println("Please park your vehicle in spot number:"+parkingSpot.getId());
                 viewer.println("Recorded in-time for vehicle number:"+vehicleRegNumber+" is:"+inTime);
@@ -110,7 +115,7 @@ public class ParkingService {
         	viewer.println("Parking slots might be full");
         	logger.error("Error fetching next available parking slot", e);
         }
-        return parkingSpot;
+        return parkingSpot; //null if an exception occurs
     }
 
     /**
@@ -122,13 +127,13 @@ public class ParkingService {
     	viewer.println("Please select vehicle type from menu");
     	viewer.println("1 CAR");
     	viewer.println("2 BIKE");
-        int input = inputReaderUtil.readSelection();
+        int input = inputReaderUtil.readSelection(); //return -1 if an exception occurred
         switch(input){
             case 1: {
-                return ParkingType.CAR;
+                return ParkingType.CAR; //no break because return
             }
             case 2: {
-                return ParkingType.BIKE;
+                return ParkingType.BIKE; //no break because return
             }
             default: {
                 throw new IllegalArgumentException("Entered input is invalid"); //Throw a java.lang.RuntimeException 
@@ -153,14 +158,17 @@ public class ParkingService {
      public void processExitingVehicle() {
         try{
             String vehicleRegNumber = getVehichleRegNumber(); //Throws Exception if invalid input, Will be caught see catch
-            Ticket ticket = ticketDAO.getTicket(vehicleRegNumber); //can return a ticket = null 
+            Ticket ticket = ticketDAO.getTicket(vehicleRegNumber); //can return null 
             Date outTime = new Date();
             ticket.setOutTime(outTime); //if ticket = null throws a NullPointerException, Will be caught see catch
             fareCalculatorService.calculateFare(ticket); // Throws IllegalArgumentException, Will be caught see catch
             if(ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
-                parkingSpot.setAvailable(true);
+                parkingSpot.setAvailable(true); //setup after ticket's update
                 parkingSpotDAO.updateParking(parkingSpot);
+                /* !!! WARNING What to do if it returns false ? In DAO : logger.error("Error updating parking info",ex)
+                 * So not persisted but ticket persisted ...*/
+ 
                 viewer.println("Please pay the parking fare:" + ticket.getPrice());
                 viewer.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
             }else{
@@ -171,4 +179,12 @@ public class ParkingService {
         	logger.error("Unable to process exiting vehicle",e);
         }
     }
+     /**
+      * To Inject Mock
+      * @param fareCalculatorService : mock
+      */
+     public void setFareCalculatorService(FareCalculatorService fareCalculatorService) {
+ 		this.fareCalculatorService = fareCalculatorService;
+ 	}
+
 }
