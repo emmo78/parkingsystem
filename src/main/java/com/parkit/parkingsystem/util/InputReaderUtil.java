@@ -15,7 +15,8 @@ import com.parkit.parkingsystem.view.ViewerImpl;
 public class InputReaderUtil {
 
     private Scanner scan = new Scanner(System.in);
-    private static final Logger logger = LogManager.getLogger("InputReaderUtil");
+
+	private static final Logger logger = LogManager.getLogger("InputReaderUtil");
     private final Viewer viewer = new ViewerImpl(); // Viewer instance
     
     /**

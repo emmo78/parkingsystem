@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit Test Class for ParkingServiceTest
+ * Unit Test Class for ParkingService
  *  
  * @author Olivier MOREL
  *
@@ -98,7 +98,7 @@ public class ParkingServiceTest {
     @Nested
     @Tag("NominalCases")
     @DisplayName("Nominal cases")
-    class NominalrCases {
+    class NominalCases {
     	/**
 	     * Tests if method processIncomingVehicle calls mocks and uses correct arguments     
 	     * with nominal cases
