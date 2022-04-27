@@ -21,8 +21,17 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 public class ParkingSpotDAO {
     private static final Logger logger = LogManager.getLogger("ParkingSpotDAO");
 
-    public DataBaseConfig dataBaseConfig = new DataBaseConfig();
+    private DataBaseConfig dataBaseConfig = new DataBaseConfig();
 
+    /**
+     * Setter for SIT tests
+     * @param dataBaseConfig
+     */
+    public void setDataBaseConfig(DataBaseConfig dataBaseConfig) {
+		this.dataBaseConfig = dataBaseConfig;
+	}
+
+    
     /**
      * Does a query to get the first minimal index of an available parking spot for a given vehicule's type
      * @param parkingType
@@ -49,7 +58,7 @@ public class ParkingSpotDAO {
         return result;
     }
 
-    /**
+	/**
      * updates field available for a given ParkingSpot's identifier
      * @param ParkingSpot model
      * @return boolean : sucess or failure to get update

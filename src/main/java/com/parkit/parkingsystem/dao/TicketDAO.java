@@ -23,9 +23,17 @@ public class TicketDAO {
 
     private static final Logger logger = LogManager.getLogger("TicketDAO");
 
-    public DataBaseConfig dataBaseConfig = new DataBaseConfig();
+    private DataBaseConfig dataBaseConfig = new DataBaseConfig();
 
     /**
+     * Setter for SIT tests
+     * @param dataBaseConfig
+     */
+     public void setDataBaseConfig(DataBaseConfig dataBaseConfig) {
+		this.dataBaseConfig = dataBaseConfig;
+	}
+
+	/**
      * Saves (persists) a new ticket model
      * @param Ticket model
      * @return boolean : true = success or false = failure
