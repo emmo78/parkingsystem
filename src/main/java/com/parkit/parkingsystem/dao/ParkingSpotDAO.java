@@ -64,7 +64,7 @@ public class ParkingSpotDAO {
      * @return boolean : sucess or failure to get update
      */
     public boolean updateParking(ParkingSpot parkingSpot){
-        //update the availability fo that parking slot
+        //update the availability for that parking slot
         Connection con = null;
         try {
             con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch

@@ -168,7 +168,8 @@ public class ParkingServiceTest {
 	        }
 	        
 	        if(ticketDAOSaveTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
-		        Date expectedInTime = new Date();
+				StringBuilder expectedInTime = (new StringBuilder((new Date()).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
+				//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
 	        	verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
 	        		.extracting(
@@ -177,7 +178,8 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
 	        			ticket -> ticket.getPrice(),
-	        			ticket -> ticket.getInTime().toString().substring(0,17), //To avoid imprecision on few seconds
+	        			ticket -> ((new StringBuilder(ticket.getInTime().toString().substring(0,17))).append(ticket.getInTime().toString().substring(24,29))).toString(),
+	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
 	        			ticket -> ticket.getOutTime())
 	        		.containsExactly(
 	        			1,
@@ -185,7 +187,7 @@ public class ParkingServiceTest {
 	        			false,
 	        			regNumber,
 	        			0D, //D to cast to double because can't use ','
-	        			expectedInTime.toString().substring(0,17), // = "dow mon dd hh:mm:" 
+	        			expectedInTime.toString(), 
 	        			null);
 	        }
 	    }
@@ -259,22 +261,31 @@ public class ParkingServiceTest {
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
 	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
-		        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+				StringBuilder expectedInTime = (new StringBuilder((new Date(System.currentTimeMillis() - (60 * 60 * 1000))).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
+				StringBuilder expectedOutTime = (new StringBuilder((new Date()).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
+				//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+	        	verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
 	        		.extracting(
 	        			ticket -> ticket.getParkingSpot().getId(),
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4), // to obtain "1.50"
+	        			ticket -> ((new StringBuilder(ticket.getInTime().toString().substring(0,17))).append(ticket.getInTime().toString().substring(24,29))).toString(),
+	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+	        			ticket -> ((new StringBuilder(ticket.getOutTime().toString().substring(0,17))).append(ticket.getOutTime().toString().substring(24,29))).toString())
+	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf("CAR"),
 	        			true, // (1)
 	        			"REGNUM",
-	        			"1.50"); // results of duration x rate
-				        /* (1) ticket parkingSpot field is a pointer to the object which field isAvailable is set from false to true
-				         * after ticket's update to SGBD (which contains a FK to parking index (PK))*/
+	        			"1.50", // results of duration x rate
+	        			expectedInTime.toString(), 
+	        			expectedOutTime.toString()); 
+			        /* (1) ticket parkingSpot field is a pointer to the object which field isAvailable is set from false to true
+			         * after ticket's update to SGBD (which contains a FK to parking index (PK))*/
 	        }
 	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 	        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
@@ -654,6 +665,9 @@ public class ParkingServiceTest {
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
 	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+				StringBuilder expectedInTime = (new StringBuilder((new Date(System.currentTimeMillis() - (60 * 60 * 1000))).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
+				StringBuilder expectedOutTime = (new StringBuilder((new Date()).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
+				//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
 				verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
 	        		.extracting(
@@ -661,14 +675,21 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4),
+	        			// to obtain "1.50"
+	        			ticket -> ((new StringBuilder(ticket.getInTime().toString().substring(0,17))).append(ticket.getInTime().toString().substring(24,29))).toString(),
+	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+	        			ticket -> ((new StringBuilder(ticket.getOutTime().toString().substring(0,17))).append(ticket.getOutTime().toString().substring(24,29))).toString())
+	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf("CAR"),
 	        			false, // (1)
 	        			"REGNUM",
-	        			"1.50"); // results of duration x rate
-		        /* (1) not true because ParkingSpot's method setAvailable won't be used */
+	        			"1.50", // results of duration x rate
+		    			expectedInTime.toString(), 
+		    			expectedOutTime.toString()); 
+	        		/* (1) not true because ParkingSpot's method setAvailable won't be used */
 	        }
 		}
 		
@@ -741,6 +762,8 @@ public class ParkingServiceTest {
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
 	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+				StringBuilder expectedInTime = (new StringBuilder((new Date(System.currentTimeMillis() - (60 * 60 * 1000))).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
+				StringBuilder expectedOutTime = (new StringBuilder((new Date()).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
 		        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
 	        		.extracting(
@@ -748,18 +771,25 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4),
+	        			// to obtain "1.50"
+	        			ticket -> ((new StringBuilder(ticket.getInTime().toString().substring(0,17))).append(ticket.getInTime().toString().substring(24,29))).toString(),
+	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+	        			ticket -> ((new StringBuilder(ticket.getOutTime().toString().substring(0,17))).append(ticket.getOutTime().toString().substring(24,29))).toString())
+	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf("CAR"),
 	        			true, // (1)
 	        			"REGNUM",
-	        			"1.50"); // results of duration x rate
-			        	/* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
-				         * after ticket's update to SGBD which contains a FK to parking index (PK).
-				         * But parking update fails, so not persisted in SGBD !!!
-				         * So we'll have a persisted Ticket with outTime and price set but with a FK to a parking's number (PK)
-				         * with availability set to false !!!*/
+	        			"1.50", // results of duration x rate
+		    			expectedInTime.toString(), 
+		    			expectedOutTime.toString()); 
+		        	/* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
+			         * after ticket's update to SGBD which contains a FK to parking index (PK).
+			         * But parking update fails, so not persisted in SGBD !!!
+			         * So we'll have a persisted Ticket with outTime and price set but with a FK to a parking's number (PK)
+			         * with availability set to false !!!*/
 	        }
 	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 	        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());

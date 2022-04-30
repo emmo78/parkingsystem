@@ -1,5 +1,6 @@
 package com.parkit.parkingsystem.integration;
 
+import com.parkit.parkingsystem.constants.DBConstants;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
@@ -20,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
@@ -27,15 +29,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ExtendWith(MockitoExtension.class)
 public class ParkingDataBaseIT {
 
     private static DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig(); //static for All methods
-    private static ParkingSpotDAO parkingSpotDAO; //static for All methods
-    private static TicketDAO ticketDAO; //static for All methods
-    private static DataBasePrepareService dataBasePrepareService; //static for All methods
+    private static ParkingSpotDAO parkingSpotDAO; //static for @BeforeAll and @AfterAll
+    private static TicketDAO ticketDAO; //static for @BeforeAll and @AfterAll
+    private static DataBasePrepareService dataBasePrepareService; //static for @BeforeAll and @AfterAll
 
     @Mock
     private static InputReaderUtil inputReaderUtil;
@@ -51,13 +57,6 @@ public class ParkingDataBaseIT {
         dataBasePrepareService = new DataBasePrepareService();
     }
 
-    @BeforeEach
-    private void setUpPerTest() throws Exception {
-        when(inputReaderUtil.readSelection()).thenReturn(1);
-        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
-        dataBasePrepareService.clearDataBaseEntries();
-    }
-
     @AfterAll
     private static void tearDown(){
         parkingSpotDAO.setDataBaseConfig(null);
@@ -67,24 +66,99 @@ public class ParkingDataBaseIT {
         dataBasePrepareService = null;
     }
 
+    @BeforeEach
+    private void setUpPerTest() throws Exception {
+        when(inputReaderUtil.readSelection()).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(2).thenReturn(2).thenReturn(1).thenReturn(2);
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("CAR1").thenReturn("CAR2").thenReturn("CAR3").thenReturn("BIKE4").thenReturn("BIKE5").thenReturn("CAR6").thenReturn("BIKE7");
+        dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
+    }
+
     @Test
-    @DisplayName("check that a ticket is actually saved in DB and Parking table is updated with availability (false)")
+    @DisplayName("Check that all tickets are actually saved in DB and Parking numbers are updated with availability false and no extra vehicle is saved")
     public void testParkingACar(){
         //GIVEN
     	ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
-    	TestResult tResult = new TestResult(); //use nested class, see below
-        Date expectedInTime = new Date();
-    	
-    	//WHEN
-        parkingService.processIncomingVehicle();
-        
+    	List<TestResult> tResults = new ArrayList<>();
+		StringBuilder expectedInTime = (new StringBuilder((new Date()).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
+		//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+
+		//WHEN
+		for(int i=1; i<8; i++) {
+		parkingService.processIncomingVehicle();
+		}
         //THEN
+
         Connection con = null;
         try {
             con = dataBaseTestConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
             PreparedStatement ps = con.prepareStatement("select p.PARKING_NUMBER, p.TYPE, p.AVAILABLE, "
             		+ "t.PARKING_NUMBER, t.VEHICLE_REG_NUMBER, t.PRICE, t.IN_TIME, t.OUT_TIME "
             		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER");
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                TestResult tResult = new TestResult(); //TestResult is a nested class, see below. To collect ResultSet fields
+                tResult.parkingNumber = rs.getInt(1);
+            	tResult.type = rs.getString(2);
+            	tResult.available = rs.getBoolean(3);
+            	tResult.parkingSpot = rs.getInt(4);
+            	tResult.vehicleRegNumber = rs.getString(5);
+            	tResult.price = rs.getDouble(6);
+            	tResult.inTime = new Date(rs.getTimestamp(7).getTime());
+            	tResult.outTime = rs.getTimestamp(8);
+            	tResults.add(tResult);
+            	tResult = null;
+            	
+            }
+            dataBaseTestConfig.closeResultSet(rs);
+            dataBaseTestConfig.closePreparedStatement(ps);
+        }catch (Exception ex){
+            viewer.println(ex.toString());
+        }finally {
+            dataBaseTestConfig.closeConnection(con);
+        }
+        
+        assertThat(tResults)
+        	.extracting(
+        			tR -> tR.parkingNumber,
+        			tR -> tR.type,
+        			tR -> tR.available,
+        			tR -> tR.parkingSpot,
+        			tR -> tR.vehicleRegNumber,
+        			tR -> tR.price,
+        			tR -> ((new StringBuilder(tR.inTime.toString().substring(0,17))).append(tR.inTime.toString().substring(24,29))).toString(),
+        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+        			tR -> tR.outTime).
+        	containsExactly(
+        			tuple(1, "CAR", false, 1, "CAR1", 0D, expectedInTime.toString(), null), //D to cast to double because can't use ','
+        			tuple(2, "CAR", false, 2, "CAR2", 0D, expectedInTime.toString(), null),
+        			tuple(3, "CAR", false, 3, "CAR3", 0D, expectedInTime.toString(), null),
+        			tuple(4, "BIKE", false, 4, "BIKE4", 0D, expectedInTime.toString(), null),
+        			tuple(5, "BIKE", false, 5, "BIKE5", 0D, expectedInTime.toString(), null));
+    }
+
+    @Test
+    @DisplayName("check that the fare generated, out time are populated correctly and Parking table is updated with availability true in the database")
+    @Disabled
+    public void testParkingLotExit(){
+        testParkingACar();
+        //GIVEN
+        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
+    	TestResult tResult = new TestResult(); //use nested class, see below
+        Date expectedOutTime = new Date();
+        
+ 
+        //WHEN
+        parkingService.processExitingVehicle();
+
+        //THEN
+        Connection con = null;
+        try {
+            con = dataBaseTestConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
+            PreparedStatement ps = con.prepareStatement("select p.PARKING_NUMBER, p.TYPE, p.AVAILABLE, "
+            		+ "t.PARKING_NUMBER, t.VEHICLE_REG_NUMBER, t.PRICE, t.IN_TIME, t.OUT_TIME "
+            		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER"
+            		+ "WHERE t.VEHICLE_REG_NUMBER=?");
+            ps.setString(1, "ABCDEF");
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
             	tResult.parkingNumber = rs.getInt(1); // = 1
@@ -124,15 +198,6 @@ public class ParkingDataBaseIT {
         			expectedInTime.toString().substring(0,17), // = "dow mon dd hh:mm:"
         			null);
     }
-
-    @Test
-    @Disabled
-    public void testParkingLotExit(){
-        testParkingACar();
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
-        parkingService.processExitingVehicle();
-        //TODO: check that the fare generated and out time are populated correctly in the database
-    }
     
     private class TestResult {
         int parkingNumber; //Primary Key
@@ -145,4 +210,4 @@ public class ParkingDataBaseIT {
         Date inTime;
         Date outTime;
     }
-}
+ }
