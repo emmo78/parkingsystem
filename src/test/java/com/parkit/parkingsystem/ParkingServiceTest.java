@@ -52,7 +52,7 @@ public class ParkingServiceTest {
     private TicketDAO ticketDAO;
     @Mock
     private FareCalculatorService fareCalculatorService; //Will be injected by setter in ParkingService
-    // For isolation, FareCalculatorService already has a unit test class
+    // For isolation, FareCalculatorService has already a unit test class
     
     private Viewer viewer; //Console display
     
@@ -126,7 +126,7 @@ public class ParkingServiceTest {
 			//parkingTypeCaptor picked up 1 ParkingType's element
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber);
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber); //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -148,7 +148,7 @@ public class ParkingServiceTest {
 	        verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
 	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -186,7 +186,7 @@ public class ParkingServiceTest {
 	        			ParkingType.valueOf(type),
 	        			false,
 	        			regNumber,
-	        			0D, //D to cast to double because can't use ','
+	        			0D, //D to cast to double
 	        			expectedInTime.toString(), 
 	        			null);
 	        }
@@ -208,7 +208,7 @@ public class ParkingServiceTest {
         	int parkingSpotDAOUpdateTimes = 0;
         	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM"); //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -246,7 +246,7 @@ public class ParkingServiceTest {
             //THEN
             //Verify mocks are used
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -271,7 +271,8 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4), // to obtain "1.50"
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4), // toString not available on primitive double
+	        			// to obtain "1.50"
 	        			ticket -> ((new StringBuilder(ticket.getInTime().toString().substring(0,17))).append(ticket.getInTime().toString().substring(24,29))).toString(),
 	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
 	        			ticket -> ((new StringBuilder(ticket.getOutTime().toString().substring(0,17))).append(ticket.getOutTime().toString().substring(24,29))).toString())
@@ -330,7 +331,7 @@ public class ParkingServiceTest {
             verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
-    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws Exception
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
@@ -370,7 +371,7 @@ public class ParkingServiceTest {
             verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
-    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
@@ -422,7 +423,7 @@ public class ParkingServiceTest {
             verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
-    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
@@ -476,7 +477,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -502,7 +503,7 @@ public class ParkingServiceTest {
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -521,7 +522,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -554,7 +555,7 @@ public class ParkingServiceTest {
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -581,7 +582,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -613,7 +614,7 @@ public class ParkingServiceTest {
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -649,7 +650,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -675,7 +676,7 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4),
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4), // toString not available on primitive double
 	        			// to obtain "1.50"
 	        			ticket -> ((new StringBuilder(ticket.getInTime().toString().substring(0,17))).append(ticket.getInTime().toString().substring(24,29))).toString(),
 	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
@@ -708,7 +709,7 @@ public class ParkingServiceTest {
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -771,7 +772,7 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4),
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4), // toString not available on primitive double
 	        			// to obtain "1.50"
 	        			ticket -> ((new StringBuilder(ticket.getInTime().toString().substring(0,17))).append(ticket.getInTime().toString().substring(24,29))).toString(),
 	        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"

@@ -22,31 +22,41 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * System Integration Test Class for cases
+ *  - parking a car : will fill the parking lot, check that all tickets should be saved in DB,
+ *    parking numbers should be updated with availability false and no extra vehicle should be saved
+ *  - parking lot exit : 
+ * @author Olivier MOREL
+ *
+ */
 @ExtendWith(MockitoExtension.class)
 public class ParkingDataBaseIT {
 
-    private static DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig(); //static for All methods
+    private static DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig(); //static for @BeforeAll and @AfterAll
     private static ParkingSpotDAO parkingSpotDAO; //static for @BeforeAll and @AfterAll
     private static TicketDAO ticketDAO; //static for @BeforeAll and @AfterAll
     private static DataBasePrepareService dataBasePrepareService; //static for @BeforeAll and @AfterAll
 
     @Mock
-    private static InputReaderUtil inputReaderUtil;
+    private static InputReaderUtil inputReaderUtil; //To mock user input (this class itself uses final class Scanner)
     
-    private final Viewer viewer = new ViewerImpl(); // Viewer instance    
+    private final Viewer viewer = new ViewerImpl(); //Viewer instance    
 
     @BeforeAll
     private static void setUp() throws Exception{
@@ -68,26 +78,32 @@ public class ParkingDataBaseIT {
 
     @BeforeEach
     private void setUpPerTest() throws Exception {
-        when(inputReaderUtil.readSelection()).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(2).thenReturn(2).thenReturn(1).thenReturn(2);
+        lenient().when(inputReaderUtil.readSelection()).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(2).thenReturn(2).thenReturn(1).thenReturn(2);
+        // on first call uses first thenReturn, on second uses second ... on seventh uses seventh, on eighth uses first ...
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("CAR1").thenReturn("CAR2").thenReturn("CAR3").thenReturn("BIKE4").thenReturn("BIKE5").thenReturn("CAR6").thenReturn("BIKE7");
         dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
     }
 
+    /**
+     * This method fill the parking lot, check that all tickets should be saved in DB,
+     * parking numbers should be updated with availability false
+     * and no extra vehicle should be saved
+     */
     @Test
-    @DisplayName("Check that all tickets are actually saved in DB and Parking numbers are updated with availability false and no extra vehicle is saved")
-    public void testParkingACar(){
+    @DisplayName("Check that all tickets should be saved in DB and Parking numbers should be updated with availability false and no extra vehicle should be saved")
+    public void testParkingCarsAndBikesShouldSaveTicketsUpdateSlotAvailabilityToFalseAndAndNoMoreVehicles(){
         //GIVEN
     	ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
-    	List<TestResult> tResults = new ArrayList<>();
+    	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to collect ResulSet fields, see below  
 		StringBuilder expectedInTime = (new StringBuilder((new Date()).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
 		//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
 
-		//WHEN
-		for(int i=1; i<8; i++) {
-		parkingService.processIncomingVehicle();
+		//WHEN & Asserts that Exception was caught for the two extra vehicles
+		for(int i=1; i<=7; i++) {
+			assertDoesNotThrow(() -> parkingService.processIncomingVehicle());
 		}
+		
         //THEN
-
         Connection con = null;
         try {
             con = dataBaseTestConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
@@ -96,7 +112,7 @@ public class ParkingDataBaseIT {
             		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER");
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
-                TestResult tResult = new TestResult(); //TestResult is a nested class, see below. To collect ResultSet fields
+                TestResult tResult = new TestResult(); //Declare and initialize a new pointer (reference value to object)
                 tResult.parkingNumber = rs.getInt(1);
             	tResult.type = rs.getString(2);
             	tResult.available = rs.getBoolean(3);
@@ -105,9 +121,8 @@ public class ParkingDataBaseIT {
             	tResult.price = rs.getDouble(6);
             	tResult.inTime = new Date(rs.getTimestamp(7).getTime());
             	tResult.outTime = rs.getTimestamp(8);
-            	tResults.add(tResult);
-            	tResult = null;
-            	
+            	tResults.add(tResult); //The pointer (reference value to object) is added in the List
+            	tResult = null; //Nullify pointer to avoid usage in the next loop 
             }
             dataBaseTestConfig.closeResultSet(rs);
             dataBaseTestConfig.closePreparedStatement(ps);
@@ -116,7 +131,14 @@ public class ParkingDataBaseIT {
         }finally {
             dataBaseTestConfig.closeConnection(con);
         }
-        
+ 
+        verify(inputReaderUtil, times(7)).readSelection(); // 7 times used
+        try {
+			verify(inputReaderUtil, times(5)).readVehicleRegistrationNumber(); // but only 5 times used because the 2 extra vehicles shouldn't be treated
+		} catch (Exception e) {
+            viewer.println(e.toString());
+		}
+        assertThat(tResults.size()).isEqualTo(5);
         assertThat(tResults)
         	.extracting(
         			tR -> tR.parkingNumber,
@@ -127,9 +149,9 @@ public class ParkingDataBaseIT {
         			tR -> tR.price,
         			tR -> ((new StringBuilder(tR.inTime.toString().substring(0,17))).append(tR.inTime.toString().substring(24,29))).toString(),
         			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
-        			tR -> tR.outTime).
-        	containsExactly(
-        			tuple(1, "CAR", false, 1, "CAR1", 0D, expectedInTime.toString(), null), //D to cast to double because can't use ','
+        			tR -> tR.outTime)
+        	.containsExactly(
+        			tuple(1, "CAR", false, 1, "CAR1", 0D, expectedInTime.toString(), null), //D to cast to double
         			tuple(2, "CAR", false, 2, "CAR2", 0D, expectedInTime.toString(), null),
         			tuple(3, "CAR", false, 3, "CAR3", 0D, expectedInTime.toString(), null),
         			tuple(4, "BIKE", false, 4, "BIKE4", 0D, expectedInTime.toString(), null),
@@ -137,38 +159,89 @@ public class ParkingDataBaseIT {
     }
 
     @Test
-    @DisplayName("check that the fare generated, out time are populated correctly and Parking table is updated with availability true in the database")
-    @Disabled
+    @DisplayName("check that the fares generated, out times are populated correctly and Parking table is updated with availability true in the database")
     public void testParkingLotExit(){
-        testParkingACar();
         //GIVEN
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
-    	TestResult tResult = new TestResult(); //use nested class, see below
-        Date expectedOutTime = new Date();
-        
- 
-        //WHEN
-        parkingService.processExitingVehicle();
+    	ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
+    	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to collect ResulSet fields, see below
+    	
+    	Date expectedInTimeD = new Date(System.currentTimeMillis() - (3600 * 1000));
+    	StringBuilder expectedInTime = (new StringBuilder(expectedInTimeD.toString().substring(0,17))).append(expectedInTimeD.toString().substring(24,29));
+		//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+    	
+    	Date expectedOutTimeD = new Date();
+    	StringBuilder expectedOutTime = (new StringBuilder(expectedOutTimeD.toString().substring(0,17))).append(expectedOutTimeD.toString().substring(24,29));
+		//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+    	
+    	tResults.add(new TestResult(1, "CAR", true, 1, "CAR2", 1.50, new Date(expectedInTimeD.getTime()-86400000), new Date(expectedOutTimeD.getTime()-86400000)));
+    	//86 400 000 = 24*60*60*1000 : CAR2 in park 25 hours ago on spot 1, exited 24 hours ago
+    	
+    	tResults.add(new TestResult(2, "CAR", true, 2, "CAR1", 1.50, new Date(expectedInTimeD.getTime()-82800000), new Date(expectedOutTimeD.getTime()-82800000)));
+    	//82 800 000 = 23*60*60*1000 : CAR1 in park 24 hours ago on spot 2, exited 23 hours ago
+    	
+    	tResults.add(new TestResult(1, "CAR", false, 1, "CAR1", 0D, expectedInTimeD, null));
+    	// CAR1 in park 1 hour ago on spot 1
 
-        //THEN
+    	tResults.add(new TestResult(2, "CAR", false, 2, "CAR2", 0D, expectedInTimeD, null));
+    	// CAR2 just after CAR1 in park 1 hour ago on spot 2
+    	    	
         Connection con = null;
+        try {
+            con = dataBaseTestConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
+            PreparedStatement psT = con.prepareStatement("insert into ticket(PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME) values(?,?,?,?,?)");
+            PreparedStatement psP = con.prepareStatement("update parking set available = ? where PARKING_NUMBER = ?");
+            tResults.forEach(tR -> {
+            	try {
+		            psT.setInt(1,tR.parkingSpot);
+		            psT.setString(2, tR.vehicleRegNumber);
+		            psT.setDouble(3, tR.price);
+		            psT.setTimestamp(4, new Timestamp(tR.inTime.getTime()));
+		            psT.setTimestamp(5, (tR.outTime == null)?null: (new Timestamp(tR.outTime.getTime())) );
+		            psT.execute();
+		            if(!tR.available) {
+		                psP.setBoolean(1, tR.available);
+		                psP.setInt(2, tR.parkingNumber);
+		                psP.executeUpdate();
+		            }
+            	} catch (Exception ex){
+                    viewer.println(ex.toString());
+            	}
+            });
+            dataBaseTestConfig.closePreparedStatement(psT);
+            dataBaseTestConfig.closePreparedStatement(psP);
+        } catch (Exception ex){
+            viewer.println(ex.toString());
+        }finally {
+            dataBaseTestConfig.closeConnection(con);
+        }  	
+        tResults.clear(); // Clear the list
+        
+        //WHEN
+        for(int i=1; i<=2; i++) {
+        	parkingService.processExitingVehicle();
+		}
+    	
+        //THEN
+        con = null;
         try {
             con = dataBaseTestConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
             PreparedStatement ps = con.prepareStatement("select p.PARKING_NUMBER, p.TYPE, p.AVAILABLE, "
             		+ "t.PARKING_NUMBER, t.VEHICLE_REG_NUMBER, t.PRICE, t.IN_TIME, t.OUT_TIME "
-            		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER"
-            		+ "WHERE t.VEHICLE_REG_NUMBER=?");
-            ps.setString(1, "ABCDEF");
+            		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER "
+            		+ "order by t.ID desc limit 2");
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
-            	tResult.parkingNumber = rs.getInt(1); // = 1
-            	tResult.type = rs.getString(2); // = "CAR"
-            	tResult.available = rs.getBoolean(3); // = false
-            	tResult.parkingSpot = rs.getInt(4); // = 1
-            	tResult.vehicleRegNumber = rs.getString(5); // = "ABCDEF" 
-            	tResult.price = rs.getDouble(6); // = 0,00 (double)
-            	tResult.inTime = new Date(rs.getTimestamp(7).getTime()); // = expectedInTime in java.util.Date format
-            	tResult.outTime = rs.getTimestamp(8); // = null
+                TestResult tResult = new TestResult(); //Declare and initialize a new pointer (reference value to object)
+                tResult.parkingNumber = rs.getInt(1);
+            	tResult.type = rs.getString(2);
+            	tResult.available = rs.getBoolean(3);
+            	tResult.parkingSpot = rs.getInt(4);
+            	tResult.vehicleRegNumber = rs.getString(5);
+            	tResult.price = rs.getDouble(6);
+            	tResult.inTime = new Date(rs.getTimestamp(7).getTime());
+            	tResult.outTime = (rs.getTimestamp(8) == null)?null: new Date(rs.getTimestamp(8).getTime());
+            	tResults.add(tResult); //The pointer (reference value to object) is added in the List
+            	tResult = null; //Nullify pointer to avoid usage in the next loop 
             }
             dataBaseTestConfig.closeResultSet(rs);
             dataBaseTestConfig.closePreparedStatement(ps);
@@ -177,30 +250,34 @@ public class ParkingDataBaseIT {
         }finally {
             dataBaseTestConfig.closeConnection(con);
         }
-        
-        assertThat(tResult)
+ 
+        try {
+			verify(inputReaderUtil, times(2)).readVehicleRegistrationNumber(); // 2 times used
+		} catch (Exception e) {
+            viewer.println(e.toString());
+		}
+        assertThat(tResults.size()).isEqualTo(2);
+        assertThat(tResults)
         	.extracting(
         			tR -> tR.parkingNumber,
         			tR -> tR.type,
         			tR -> tR.available,
         			tR -> tR.parkingSpot,
         			tR -> tR.vehicleRegNumber,
-        			tR -> tR.price,
-        			tR -> tR.inTime.toString().substring(0,17), //To avoid imprecision on few seconds
-        			tR -> tR.outTime).
-        	containsExactly(
-        			1,
-        			"CAR",
-        			false,
-        			1,
-        			"ABCDEF",
-        			0D, //D to cast to double because can't use ','
-        			expectedInTime.toString().substring(0,17), // = "dow mon dd hh:mm:"
-        			null);
+        			tR -> Double.valueOf(tR.price).toString().length()>3?
+        					Double.valueOf(tR.price).toString().substring(0,4):
+        						Double.valueOf(tR.price).toString().substring(0,3).concat("0"), // To obtain "1.50"  
+        			tR -> ((new StringBuilder(tR.inTime.toString().substring(0,17))).append(tR.inTime.toString().substring(24,29))).toString(),
+        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+        			tR -> tR.outTime==null?null: ((new StringBuilder(tR.outTime.toString().substring(0,17))).append(tR.outTime.toString().substring(24,29))).toString() 
+        			)
+        	.containsExactly( // descending order
+        			tuple(2, "CAR", true, 2, "CAR2", "1.50", expectedInTime.toString(), expectedOutTime.toString()),
+        			tuple(1, "CAR", true, 1, "CAR1", "1.50", expectedInTime.toString(), expectedOutTime.toString()));
     }
     
     private class TestResult {
-        int parkingNumber; //Primary Key
+		int parkingNumber; //Primary Key
         String type;
         boolean available;
 
@@ -209,5 +286,28 @@ public class ParkingDataBaseIT {
         double price;
         Date inTime;
         Date outTime;
+ 
+        TestResult() {
+ 			this.parkingNumber = 0;
+ 			this.type = null;
+ 			this.available = false;
+ 			this.parkingSpot = 0;
+ 			this.vehicleRegNumber = null;
+ 			this.price = 0D;
+ 			this.inTime = null;
+ 			this.outTime = null;
+        }
+ 		
+        TestResult(int parkingNumber, String type, boolean available, int parkingSpot, String vehicleRegNumber,
+				double price, Date inTime, Date outTime) {
+			this.parkingNumber = parkingNumber;
+			this.type = type;
+			this.available = available;
+			this.parkingSpot = parkingSpot;
+			this.vehicleRegNumber = vehicleRegNumber;
+			this.price = price;
+			this.inTime = inTime;
+			this.outTime = outTime;
+		}
     }
  }
