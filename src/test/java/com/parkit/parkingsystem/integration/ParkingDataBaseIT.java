@@ -1,6 +1,5 @@
 package com.parkit.parkingsystem.integration;
 
-import com.parkit.parkingsystem.constants.DBConstants;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
@@ -41,7 +40,9 @@ import java.util.List;
  * System Integration Test Class for cases
  *  - parking a car : will fill the parking lot, check that all tickets should be saved in DB,
  *    parking numbers should be updated with availability false and no extra vehicle should be saved
- *  - parking lot exit : 
+ *  - parking lot exit : will initialize ticket and parking tables with two cars ("CAR1" and "CAR2")
+ *    which came and exited yesterday and come and exit today. Check if parking lots and tickets
+ *    should be updated with availability true, out date and fare calculated to 1.50.  
  * @author Olivier MOREL
  *
  */
@@ -95,8 +96,7 @@ public class ParkingDataBaseIT {
         //GIVEN
     	ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
     	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to collect ResulSet fields, see below  
-		StringBuilder expectedInTime = (new StringBuilder((new Date()).toString().substring(0,17))).append((new Date()).toString().substring(24,29));
-		//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+		Date expectedInTime = new Date();
 
 		//WHEN & Asserts that Exception was caught for the two extra vehicles
 		for(int i=1; i<=7; i++) {
@@ -119,8 +119,8 @@ public class ParkingDataBaseIT {
             	tResult.parkingSpot = rs.getInt(4);
             	tResult.vehicleRegNumber = rs.getString(5);
             	tResult.price = rs.getDouble(6);
-            	tResult.inTime = new Date(rs.getTimestamp(7).getTime());
-            	tResult.outTime = rs.getTimestamp(8);
+            	tResult.inTime = new Date(rs.getTimestamp(7).getTime());  //To avoid imprecision on 2 seconds
+            	tResult.outTime = rs.getTimestamp(8); // = null
             	tResults.add(tResult); //The pointer (reference value to object) is added in the List
             	tResult = null; //Nullify pointer to avoid usage in the next loop 
             }
@@ -147,42 +147,49 @@ public class ParkingDataBaseIT {
         			tR -> tR.parkingSpot,
         			tR -> tR.vehicleRegNumber,
         			tR -> tR.price,
-        			tR -> ((new StringBuilder(tR.inTime.toString().substring(0,17))).append(tR.inTime.toString().substring(24,29))).toString(),
-        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+        			//tR -> tR.inTime,
         			tR -> tR.outTime)
         	.containsExactly(
-        			tuple(1, "CAR", false, 1, "CAR1", 0D, expectedInTime.toString(), null), //D to cast to double
-        			tuple(2, "CAR", false, 2, "CAR2", 0D, expectedInTime.toString(), null),
-        			tuple(3, "CAR", false, 3, "CAR3", 0D, expectedInTime.toString(), null),
-        			tuple(4, "BIKE", false, 4, "BIKE4", 0D, expectedInTime.toString(), null),
-        			tuple(5, "BIKE", false, 5, "BIKE5", 0D, expectedInTime.toString(), null));
+        			tuple(1, "CAR", false, 1, "CAR1", 0d, null), //d to cast to double
+        			tuple(2, "CAR", false, 2, "CAR2", 0d, null),
+        			tuple(3, "CAR", false, 3, "CAR3", 0d, null),
+        			tuple(4, "BIKE", false, 4, "BIKE4", 0d, null),
+        			tuple(5, "BIKE", false, 5, "BIKE5", 0d, null));
+        tResults.forEach(tR -> {
+        	assertThat(tR.inTime).isCloseTo(expectedInTime, 2000);
+        	/* Verifies that the tR.inTime Date is close to the expectedInTime Date by less than delta (expressed in milliseconds),
+        	 * if difference is equal to delta it's ok. */ 
+        });
     }
 
+    /**
+     * This method initialize ticket and parking tables with two cars ("CAR1" and "CAR2") :
+     *  - "CAR1" parked 24 hours ago on spot 2, exited 23 hours ago and then parks today 1 hour ago on spot 1
+     *  - "CAR2" parked 25 hours ago on spot 1, exited 24 hours ago and then parks today 1 hour ago just after "CAR1" on spot 2
+     * Then the two cars exit the park, should update :
+     *  - parking spots availability to true
+     *  - tickets out dates and claculate fare to 1.50 
+     */
     @Test
-    @DisplayName("check that the fares generated, out times are populated correctly and Parking table is updated with availability true in the database")
+    @DisplayName("Check that the fares generated, out times are populated correctly and Parking table is updated with availability true in the database")
     public void testParkingLotExit(){
         //GIVEN
     	ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
     	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to collect ResulSet fields, see below
     	
-    	Date expectedInTimeD = new Date(System.currentTimeMillis() - (3600 * 1000));
-    	StringBuilder expectedInTime = (new StringBuilder(expectedInTimeD.toString().substring(0,17))).append(expectedInTimeD.toString().substring(24,29));
-		//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+    	Date expectedInTime = new Date(System.currentTimeMillis() - (3600 * 1000));
+    	Date expectedOutTime = new Date();
     	
-    	Date expectedOutTimeD = new Date();
-    	StringBuilder expectedOutTime = (new StringBuilder(expectedOutTimeD.toString().substring(0,17))).append(expectedOutTimeD.toString().substring(24,29));
-		//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
-    	
-    	tResults.add(new TestResult(1, "CAR", true, 1, "CAR2", 1.50, new Date(expectedInTimeD.getTime()-86400000), new Date(expectedOutTimeD.getTime()-86400000)));
+    	tResults.add(new TestResult(1, "CAR", true, 1, "CAR2", 1.50, new Date(expectedInTime.getTime()-86400000), new Date(expectedOutTime.getTime()-86400000)));
     	//86 400 000 = 24*60*60*1000 : CAR2 in park 25 hours ago on spot 1, exited 24 hours ago
     	
-    	tResults.add(new TestResult(2, "CAR", true, 2, "CAR1", 1.50, new Date(expectedInTimeD.getTime()-82800000), new Date(expectedOutTimeD.getTime()-82800000)));
+    	tResults.add(new TestResult(2, "CAR", true, 2, "CAR1", 1.50, new Date(expectedInTime.getTime()-82800000), new Date(expectedOutTime.getTime()-82800000)));
     	//82 800 000 = 23*60*60*1000 : CAR1 in park 24 hours ago on spot 2, exited 23 hours ago
     	
-    	tResults.add(new TestResult(1, "CAR", false, 1, "CAR1", 0D, expectedInTimeD, null));
+    	tResults.add(new TestResult(1, "CAR", false, 1, "CAR1", 0d, expectedInTime, null));
     	// CAR1 in park 1 hour ago on spot 1
 
-    	tResults.add(new TestResult(2, "CAR", false, 2, "CAR2", 0D, expectedInTimeD, null));
+    	tResults.add(new TestResult(2, "CAR", false, 2, "CAR2", 0d, expectedInTime, null));
     	// CAR2 just after CAR1 in park 1 hour ago on spot 2
     	    	
         Connection con = null;
@@ -196,9 +203,9 @@ public class ParkingDataBaseIT {
 		            psT.setString(2, tR.vehicleRegNumber);
 		            psT.setDouble(3, tR.price);
 		            psT.setTimestamp(4, new Timestamp(tR.inTime.getTime()));
-		            psT.setTimestamp(5, (tR.outTime == null)?null: (new Timestamp(tR.outTime.getTime())) );
+		            psT.setTimestamp(5, (tR.outTime == null)?null: (new Timestamp(tR.outTime.getTime())));
 		            psT.execute();
-		            if(!tR.available) {
+		            if(!tR.available) { // if availability false
 		                psP.setBoolean(1, tR.available);
 		                psP.setInt(2, tR.parkingNumber);
 		                psP.executeUpdate();
@@ -265,17 +272,24 @@ public class ParkingDataBaseIT {
         			tR -> tR.parkingSpot,
         			tR -> tR.vehicleRegNumber,
         			tR -> Double.valueOf(tR.price).toString().length()>3?
-        					Double.valueOf(tR.price).toString().substring(0,4):
-        						Double.valueOf(tR.price).toString().substring(0,3).concat("0"), // To obtain "1.50"  
-        			tR -> ((new StringBuilder(tR.inTime.toString().substring(0,17))).append(tR.inTime.toString().substring(24,29))).toString(),
-        			//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
-        			tR -> tR.outTime==null?null: ((new StringBuilder(tR.outTime.toString().substring(0,17))).append(tR.outTime.toString().substring(24,29))).toString() 
-        			)
+        					Double.valueOf(tR.price).toString().substring(0,4): // To obtain "1.50" if 1.5000111
+        						Double.valueOf(tR.price).toString().substring(0,3).concat("0")) // To obtain "1.50" if 1.5 
         	.containsExactly( // descending order
-        			tuple(2, "CAR", true, 2, "CAR2", "1.50", expectedInTime.toString(), expectedOutTime.toString()),
-        			tuple(1, "CAR", true, 1, "CAR1", "1.50", expectedInTime.toString(), expectedOutTime.toString()));
+        			tuple(2, "CAR", true, 2, "CAR2", "1.50"),
+        			tuple(1, "CAR", true, 1, "CAR1", "1.50"));
+        tResults.forEach(tR -> {
+        	assertThat(tR.inTime).isCloseTo(expectedInTime, 2000);
+        	assertThat(tR.outTime).isCloseTo(expectedOutTime, 2000);
+        	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
+        	 * if difference is equal to delta it's ok. */ 
+        });
     }
     
+    /**
+     * Nested class with fields to collect ResulSet fields
+     * @author Olivier MOREL
+     *
+     */
     private class TestResult {
 		int parkingNumber; //Primary Key
         String type;
@@ -293,7 +307,7 @@ public class ParkingDataBaseIT {
  			this.available = false;
  			this.parkingSpot = 0;
  			this.vehicleRegNumber = null;
- 			this.price = 0D;
+ 			this.price = 0d;
  			this.inTime = null;
  			this.outTime = null;
         }

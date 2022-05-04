@@ -16,6 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Date;
@@ -96,7 +97,7 @@ public class FareCalculatorServiceTest {
         fareCalculatorService.calculateFare(ticket);
         
         //THEN
-        assertThat(ticket.getPrice()).isEqualTo(coefFare*fareTypeRate); // or isCloseTo(double, withinPercentage(0.01)). 
+        assertThat(ticket.getPrice()).isCloseTo(coefFare*fareTypeRate, within(0.001)); //If difference is equal to offset value, assertion is considered valid.
     }
 
     /**
