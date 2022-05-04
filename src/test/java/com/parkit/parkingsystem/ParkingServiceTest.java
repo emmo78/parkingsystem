@@ -52,7 +52,7 @@ public class ParkingServiceTest {
     private TicketDAO ticketDAO;
     @Mock
     private FareCalculatorService fareCalculatorService; //Will be injected by setter in ParkingService
-    // For isolation, FareCalculatorService already has a unit test class
+    // For isolation, FareCalculatorService has already a unit test class
     
     private Viewer viewer; //Console display
     
@@ -126,7 +126,7 @@ public class ParkingServiceTest {
 			//parkingTypeCaptor picked up 1 ParkingType's element
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber);
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber); //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -148,7 +148,7 @@ public class ParkingServiceTest {
 	        verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
 	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -168,7 +168,7 @@ public class ParkingServiceTest {
 	        }
 	        
 	        if(ticketDAOSaveTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
-		        Date expectedInTime = new Date();
+				Date expectedInTime = new Date();
 	        	verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
 	        		.extracting(
@@ -177,16 +177,17 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
 	        			ticket -> ticket.getPrice(),
-	        			ticket -> ticket.getInTime().toString().substring(0,17), //To avoid imprecision on few seconds
 	        			ticket -> ticket.getOutTime())
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf(type),
 	        			false,
 	        			regNumber,
-	        			0D, //D to cast to double because can't use ','
-	        			expectedInTime.toString().substring(0,17), // = "dow mon dd hh:mm:" 
+	        			0d, //d to cast to double
 	        			null);
+	        	assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
+	        	/* Verifies that the inTime Date is close to the expected Date by less than delta (expressed in milliseconds),
+	        	 * if difference is equal to delta it's ok. */		
 	        }
 	    }
 
@@ -206,17 +207,18 @@ public class ParkingServiceTest {
         	int parkingSpotDAOUpdateTimes = 0;
         	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM"); //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
 	    	
+			Date expectedInTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
 	    	Ticket ticketGiven = new Ticket();
     		ticketGiven.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
             ticketGiven.setVehicleRegNumber("REGNUM");
             ticketGiven.setPrice(0);
-            ticketGiven.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
+            ticketGiven.setInTime(expectedInTime);
             ticketGiven.setOutTime(null);
             when(ticketDAO.getTicket(any(String.class))).thenReturn(ticketGiven);
             ticketDAOGetTimes++; //= 1;
@@ -224,7 +226,7 @@ public class ParkingServiceTest {
             
             doAnswer(invocation -> {
             	Ticket ticket = invocation.getArgument(0, Ticket.class);
-            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600D) ) * Fare.CAR_RATE_PER_HOUR);
+            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR);
             	return null;})
             	.when(fareCalculatorService).calculateFare(any(Ticket.class));
             fareCalculatorServiceTimes++; //=1
@@ -244,7 +246,7 @@ public class ParkingServiceTest {
             //THEN
             //Verify mocks are used
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -259,22 +261,30 @@ public class ParkingServiceTest {
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
 	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
-		        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+				Date expectedOutTime = new Date();
+				//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
+	        	verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
 	        		.extracting(
 	        			ticket -> ticket.getParkingSpot().getId(),
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().length()>3?
+	        						Double.valueOf(ticket.getPrice()).toString().substring(0,4): // To obtain "1.50" if 1.5000111
+	        							Double.valueOf(ticket.getPrice()).toString().substring(0,3).concat("0")) // To obtain "1.50" if 1.5) // toString not available on primitive double
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf("CAR"),
 	        			true, // (1)
 	        			"REGNUM",
 	        			"1.50"); // results of duration x rate
-				        /* (1) ticket parkingSpot field is a pointer to the object which field isAvailable is set from false to true
-				         * after ticket's update to SGBD (which contains a FK to parking index (PK))*/
+			        /* (1) ticket parkingSpot field is a pointer to the object which field isAvailable is set from false to true
+			         * after ticket's update to SGBD (which contains a FK to parking index (PK))*/
+	        	assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
+	        	assertThat(ticketCaptor.getValue().getOutTime()).isCloseTo(expectedOutTime, 1000);
+	        	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
+	        	 * if difference is equal to delta it's ok. */ 
 	        }
 	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 	        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
@@ -319,7 +329,7 @@ public class ParkingServiceTest {
             verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
-    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws Exception
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
@@ -359,7 +369,7 @@ public class ParkingServiceTest {
             verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
-    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
@@ -411,7 +421,7 @@ public class ParkingServiceTest {
             verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
-    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
@@ -465,7 +475,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -491,7 +501,7 @@ public class ParkingServiceTest {
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -510,7 +520,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -543,17 +553,18 @@ public class ParkingServiceTest {
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
 	    	
+			Date expectedInTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
 	    	Ticket ticketGiven = new Ticket();
     		ticketGiven.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
             ticketGiven.setVehicleRegNumber("REGNUM");
             ticketGiven.setPrice(0);
-            ticketGiven.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
+            ticketGiven.setInTime(expectedInTime);
             ticketGiven.setOutTime(null);
             when(ticketDAO.getTicket(any(String.class))).thenReturn(ticketGiven);
             ticketDAOGetTimes++; //= 1;
@@ -570,7 +581,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -602,17 +613,18 @@ public class ParkingServiceTest {
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
 	    	
+			Date expectedInTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
 	    	Ticket ticketGiven = new Ticket();
     		ticketGiven.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
             ticketGiven.setVehicleRegNumber("REGNUM");
             ticketGiven.setPrice(0);
-            ticketGiven.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
+            ticketGiven.setInTime(expectedInTime);
             ticketGiven.setOutTime(null);
             when(ticketDAO.getTicket(any(String.class))).thenReturn(ticketGiven);
             ticketDAOGetTimes++; //= 1;
@@ -620,7 +632,7 @@ public class ParkingServiceTest {
    	    	
             doAnswer(invocation -> {
             	Ticket ticket = invocation.getArgument(0, Ticket.class);
-            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600D) ) * Fare.CAR_RATE_PER_HOUR);
+            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR);
             	return null;})
             	.when(fareCalculatorService).calculateFare(any(Ticket.class));
             fareCalculatorServiceTimes++; //=1
@@ -638,7 +650,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -654,6 +666,7 @@ public class ParkingServiceTest {
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
 	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+				Date expectedOutTime = new Date();
 				verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
 	        		.extracting(
@@ -661,14 +674,20 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().length()>3?
+	        						Double.valueOf(ticket.getPrice()).toString().substring(0,4): // To obtain "1.50" if 1.5000111
+	        							Double.valueOf(ticket.getPrice()).toString().substring(0,3).concat("0")) // To obtain "1.50" if 1.5) // toString not available on primitive double
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf("CAR"),
 	        			false, // (1)
 	        			"REGNUM",
 	        			"1.50"); // results of duration x rate
-		        /* (1) not true because ParkingSpot's method setAvailable won't be used */
+	        		/* (1) not true because ParkingSpot's method setAvailable won't be used */
+	        	assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
+	        	assertThat(ticketCaptor.getValue().getOutTime()).isCloseTo(expectedOutTime, 1000);
+	        	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
+	        	 * if difference is equal to delta it's ok. */ 
 	        }
 		}
 		
@@ -687,17 +706,18 @@ public class ParkingServiceTest {
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
 	    	
+			Date expectedInTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
 	    	Ticket ticketGiven = new Ticket();
     		ticketGiven.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
             ticketGiven.setVehicleRegNumber("REGNUM");
             ticketGiven.setPrice(0);
-            ticketGiven.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
+            ticketGiven.setInTime(expectedInTime);
             ticketGiven.setOutTime(null);
             when(ticketDAO.getTicket(any(String.class))).thenReturn(ticketGiven);
             ticketDAOGetTimes++; //= 1;
@@ -705,7 +725,7 @@ public class ParkingServiceTest {
    	    	
             doAnswer(invocation -> {
             	Ticket ticket = invocation.getArgument(0, Ticket.class);
-            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600D) ) * Fare.CAR_RATE_PER_HOUR);
+            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR);
             	return null;})
             	.when(fareCalculatorService).calculateFare(any(Ticket.class));
             fareCalculatorServiceTimes++; //=1
@@ -741,6 +761,7 @@ public class ParkingServiceTest {
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
 	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+				Date expectedOutTime = new Date();
 		        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
 	        		.extracting(
@@ -748,18 +769,24 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().substring(0,4)) // to obtain "1.50"
+	        			ticket -> Double.valueOf(ticket.getPrice()).toString().length()>3?
+	        						Double.valueOf(ticket.getPrice()).toString().substring(0,4): // To obtain "1.50" if 1.5000111
+	        							Double.valueOf(ticket.getPrice()).toString().substring(0,3).concat("0")) // To obtain "1.50" if 1.5) // toString not available on primitive double
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf("CAR"),
 	        			true, // (1)
 	        			"REGNUM",
 	        			"1.50"); // results of duration x rate
-			        	/* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
-				         * after ticket's update to SGBD which contains a FK to parking index (PK).
-				         * But parking update fails, so not persisted in SGBD !!!
-				         * So we'll have a persisted Ticket with outTime and price set but with a FK to a parking's number (PK)
-				         * with availability set to false !!!*/
+		        	/* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
+			         * after ticket's update to SGBD which contains a FK to parking index (PK).
+			         * But parking update fails, so not persisted in SGBD !!!
+			         * So we'll have a persisted Ticket with outTime and price set but with a FK to a parking's number (PK)
+			         * with availability set to false !!!*/
+	        	assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
+	        	assertThat(ticketCaptor.getValue().getOutTime()).isCloseTo(expectedOutTime, 1000);
+	        	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
+	        	 * if difference is equal to delta it's ok. */ 
 	        }
 	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 	        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
