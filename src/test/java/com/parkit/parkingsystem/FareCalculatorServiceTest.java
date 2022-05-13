@@ -97,7 +97,7 @@ public class FareCalculatorServiceTest {
         fareCalculatorService.calculateFare(ticket);
         
         //THEN
-        assertThat(ticket.getPrice()).isCloseTo(coefFare*fareTypeRate, within(0.001)); //If difference is equal to offset value, assertion is considered valid.
+        assertThat(ticket.getPrice()).isCloseTo(coefFare*fareTypeRate, within(0.01)); //If difference is equal to offset value, assertion is considered valid.
     }
 
     /**

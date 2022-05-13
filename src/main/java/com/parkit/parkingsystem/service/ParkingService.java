@@ -149,6 +149,14 @@ public class ParkingService {
     private String getVehichleRegNumber() throws Exception {
     	viewer.println("Please type the vehicle registration number and press enter key");
         return inputReaderUtil.readVehicleRegistrationNumber(); // Throws Exception if null or only blank space or invalid String input
+        /* !!! WARNING What to do if :
+         * GIVEN : user A with registered number "ABCDEF" came at 9.00
+         * WHEN :  user B with registered number "ABCDEG" comes at 11:00
+         *         and does a mistake inputing registered "ABCDEF"
+         *         but there is no check that "ABCDEF" is already parked
+         * THEN : user A will exit at 12:00 and will pay only 1 hour not 3 !
+         *        user B will exit at 13:00 and will pay 4 hours ! not only 2 !
+         */ 
     }
 
     /**

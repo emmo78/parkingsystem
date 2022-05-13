@@ -1,5 +1,8 @@
 package com.parkit.parkingsystem.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
 
@@ -27,11 +30,13 @@ public class FareCalculatorService {
         try {
 	        switch (ticket.getParkingSpot().getParkingType()){ //When null show up in switch statement, Java will throw NullPointerException
 	            case CAR: {
-	                ticket.setPrice(duration * Fare.CAR_RATE_PER_HOUR);
+	                ticket.setPrice(BigDecimal.valueOf(duration * Fare.CAR_RATE_PER_HOUR).setScale(2, RoundingMode.HALF_UP).doubleValue());
+	                // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
 	                break;
 	            }
 	            case BIKE: {
-	                ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR);
+	                ticket.setPrice(BigDecimal.valueOf(duration * Fare.BIKE_RATE_PER_HOUR).setScale(2, RoundingMode.HALF_UP).doubleValue());
+	                // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
 	                break;
 	            }
 	            default: { //Braces are optional but better readability 

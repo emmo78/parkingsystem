@@ -27,6 +27,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -226,7 +228,8 @@ public class ParkingServiceTest {
             
             doAnswer(invocation -> {
             	Ticket ticket = invocation.getArgument(0, Ticket.class);
-            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR);
+            	ticket.setPrice( BigDecimal.valueOf( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime() ) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR)
+            			.setScale(2, RoundingMode.HALF_UP).doubleValue() ); // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
             	return null;})
             	.when(fareCalculatorService).calculateFare(any(Ticket.class));
             fareCalculatorServiceTimes++; //=1
@@ -262,7 +265,6 @@ public class ParkingServiceTest {
 	        }
 	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 				Date expectedOutTime = new Date();
-				//To avoid imprecision on few seconds = "dow mon dd hh:mm: yyyy"
 	        	verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
 	        		.extracting(
@@ -270,15 +272,13 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().length()>3?
-	        						Double.valueOf(ticket.getPrice()).toString().substring(0,4): // To obtain "1.50" if 1.5000111
-	        							Double.valueOf(ticket.getPrice()).toString().substring(0,3).concat("0")) // To obtain "1.50" if 1.5) // toString not available on primitive double
+	        			ticket -> ticket.getPrice())
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf("CAR"),
 	        			true, // (1)
 	        			"REGNUM",
-	        			"1.50"); // results of duration x rate
+	        			1.5); // results of duration x rate
 			        /* (1) ticket parkingSpot field is a pointer to the object which field isAvailable is set from false to true
 			         * after ticket's update to SGBD (which contains a FK to parking index (PK))*/
 	        	assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
@@ -632,7 +632,8 @@ public class ParkingServiceTest {
    	    	
             doAnswer(invocation -> {
             	Ticket ticket = invocation.getArgument(0, Ticket.class);
-            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR);
+            	ticket.setPrice( BigDecimal.valueOf( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime() ) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR)
+            			.setScale(2, RoundingMode.HALF_UP).doubleValue() ); // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
             	return null;})
             	.when(fareCalculatorService).calculateFare(any(Ticket.class));
             fareCalculatorServiceTimes++; //=1
@@ -674,15 +675,13 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().length()>3?
-	        						Double.valueOf(ticket.getPrice()).toString().substring(0,4): // To obtain "1.50" if 1.5000111
-	        							Double.valueOf(ticket.getPrice()).toString().substring(0,3).concat("0")) // To obtain "1.50" if 1.5) // toString not available on primitive double
+	        			ticket -> ticket.getPrice())
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf("CAR"),
 	        			false, // (1)
 	        			"REGNUM",
-	        			"1.50"); // results of duration x rate
+	        			1.5); // results of duration x rate
 	        		/* (1) not true because ParkingSpot's method setAvailable won't be used */
 	        	assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
 	        	assertThat(ticketCaptor.getValue().getOutTime()).isCloseTo(expectedOutTime, 1000);
@@ -725,7 +724,8 @@ public class ParkingServiceTest {
    	    	
             doAnswer(invocation -> {
             	Ticket ticket = invocation.getArgument(0, Ticket.class);
-            	ticket.setPrice( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime()) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR);
+            	ticket.setPrice( BigDecimal.valueOf( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime() ) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR)
+            			.setScale(2, RoundingMode.HALF_UP).doubleValue() ); // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
             	return null;})
             	.when(fareCalculatorService).calculateFare(any(Ticket.class));
             fareCalculatorServiceTimes++; //=1
@@ -769,15 +769,13 @@ public class ParkingServiceTest {
 	        			ticket -> ticket.getParkingSpot().getParkingType(),
 	        			ticket -> ticket.getParkingSpot().isAvailable(),
 	        			ticket -> ticket.getVehicleRegNumber(),
-	        			ticket -> Double.valueOf(ticket.getPrice()).toString().length()>3?
-	        						Double.valueOf(ticket.getPrice()).toString().substring(0,4): // To obtain "1.50" if 1.5000111
-	        							Double.valueOf(ticket.getPrice()).toString().substring(0,3).concat("0")) // To obtain "1.50" if 1.5) // toString not available on primitive double
+	        			ticket -> ticket.getPrice())
 	        		.containsExactly(
 	        			1,
 	        			ParkingType.valueOf("CAR"),
 	        			true, // (1)
 	        			"REGNUM",
-	        			"1.50"); // results of duration x rate
+	        			1.5); // results of duration x rate
 		        	/* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
 			         * after ticket's update to SGBD which contains a FK to parking index (PK).
 			         * But parking update fails, so not persisted in SGBD !!!

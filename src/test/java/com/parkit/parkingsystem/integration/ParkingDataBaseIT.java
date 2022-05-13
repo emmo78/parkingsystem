@@ -119,7 +119,7 @@ public class ParkingDataBaseIT {
             	tResult.parkingSpot = rs.getInt(4);
             	tResult.vehicleRegNumber = rs.getString(5);
             	tResult.price = rs.getDouble(6);
-            	tResult.inTime = new Date(rs.getTimestamp(7).getTime());  //To avoid imprecision on 2 seconds
+            	tResult.inTime = new Date(rs.getTimestamp(7).getTime());
             	tResult.outTime = rs.getTimestamp(8); // = null
             	tResults.add(tResult); //The pointer (reference value to object) is added in the List
             	tResult = null; //Nullify pointer to avoid usage in the next loop 
@@ -147,7 +147,6 @@ public class ParkingDataBaseIT {
         			tR -> tR.parkingSpot,
         			tR -> tR.vehicleRegNumber,
         			tR -> tR.price,
-        			//tR -> tR.inTime,
         			tR -> tR.outTime)
         	.containsExactly(
         			tuple(1, "CAR", false, 1, "CAR1", 0d, null), //d to cast to double
@@ -271,12 +270,10 @@ public class ParkingDataBaseIT {
         			tR -> tR.available,
         			tR -> tR.parkingSpot,
         			tR -> tR.vehicleRegNumber,
-        			tR -> Double.valueOf(tR.price).toString().length()>3?
-        					Double.valueOf(tR.price).toString().substring(0,4): // To obtain "1.50" if 1.5000111
-        						Double.valueOf(tR.price).toString().substring(0,3).concat("0")) // To obtain "1.50" if 1.5 
+        			tR -> tR.price) 
         	.containsExactly( // descending order
-        			tuple(2, "CAR", true, 2, "CAR2", "1.50"),
-        			tuple(1, "CAR", true, 1, "CAR1", "1.50"));
+        			tuple(2, "CAR", true, 2, "CAR2", 1.5),
+        			tuple(1, "CAR", true, 1, "CAR1", 1.5));
         tResults.forEach(tR -> {
         	assertThat(tR.inTime).isCloseTo(expectedInTime, 2000);
         	assertThat(tR.outTime).isCloseTo(expectedOutTime, 2000);
