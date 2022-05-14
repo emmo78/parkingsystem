@@ -15,7 +15,7 @@ public class FareCalculatorService {
 
     /**
      * From a given ticket calculates the fare taking into account the vehicle's type
-     * @param ticket
+     * @param ticket : model
      * @throws IllegalArgumentException if type is unknown
      */
 	public void calculateFare(Ticket ticket) throws IllegalArgumentException{ // Throws optional because RuntimeException but better readability

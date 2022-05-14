@@ -21,12 +21,14 @@
 			<artifactId>log4j-api</artifactId>
 			<version>${dep.log4j.version}</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 			<version>${dep.log4j.version}</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
@@ -45,6 +47,7 @@
 			<version>${dep.junit.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
@@ -52,6 +55,7 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-junit-jupiter</artifactId>
@@ -103,12 +107,51 @@
 			<version>${dep.cucumber.version}</version>
 			<scope>test</scope>
 		</dependency>
-
-		
 	</dependencies>
+
+  <reporting>
+	<plugins>
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-project-info-reports-plugin -->
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-project-info-reports-plugin</artifactId>
+			<version>3.3.0</version>
+		</plugin>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-javadoc-plugin</artifactId>
+			<version>3.4.0</version>
+			<reportSets>
+				<reportSet><!-- by default, id = "default" -->
+					<reports><!-- select non-aggregate reports -->
+						<report>javadoc</report>
+						<report>test-javadoc</report>
+					</reports>
+				</reportSet>
+				<reportSet><!-- aggregate reportSet, to define in poms having modules -->
+					<id>aggregate</id>
+					<inherited>false</inherited><!-- don't run aggregate in child modules -->
+					<reports>
+						<report>aggregate</report>
+					</reports>
+				</reportSet>
+			</reportSets>
+		</plugin>
+    </plugins>
+  </reporting>
 
 	<build>
 		<plugins>
+			 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-site-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>4.0.0-M1</version>
+			</plugin>
+
+			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-assembly-plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -134,11 +177,14 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.22.2</version>
 				<dependencies>
+					<!-- https://mvnrepository.com/artifact/org.junit.platform/junit-platform-surefire-provider -->
 					<dependency>
 						<groupId>org.junit.platform</groupId>
 						<artifactId>junit-platform-surefire-provider</artifactId>
@@ -168,6 +214,8 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -187,8 +235,9 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-failsafe-plugin -->
 			<plugin>
-				<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-failsafe-plugin -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>2.22.2</version>
