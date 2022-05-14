@@ -25,7 +25,7 @@ public class ParkingSpotDAO {
 
     /**
      * Setter for SIT tests
-     * @param dataBaseConfig
+     * @param dataBaseConfig : configuration for database
      */
     public void setDataBaseConfig(DataBaseConfig dataBaseConfig) {
 		this.dataBaseConfig = dataBaseConfig;
@@ -34,7 +34,7 @@ public class ParkingSpotDAO {
     
     /**
      * Does a query to get the first minimal index of an available parking spot for a given vehicule's type
-     * @param parkingType
+     * @param parkingType : given vehicule's type
      * @return the index of the available parking spot
      */
     public int getNextAvailableSlot(ParkingType parkingType){
@@ -60,8 +60,8 @@ public class ParkingSpotDAO {
 
 	/**
      * updates field available for a given ParkingSpot's identifier
-     * @param ParkingSpot model
-     * @return boolean : sucess or failure to get update
+     * @param parkingSpot : model
+     * @return boolean : success or failure to get update
      */
     public boolean updateParking(ParkingSpot parkingSpot){
         //update the availability for that parking slot

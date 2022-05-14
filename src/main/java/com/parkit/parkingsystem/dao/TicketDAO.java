@@ -27,7 +27,7 @@ public class TicketDAO {
 
     /**
      * Setter for SIT tests
-     * @param dataBaseConfig
+     * @param dataBaseConfig : configuration for database access
      */
      public void setDataBaseConfig(DataBaseConfig dataBaseConfig) {
 		this.dataBaseConfig = dataBaseConfig;
@@ -35,7 +35,7 @@ public class TicketDAO {
 
 	/**
      * Saves (persists) a new ticket model
-     * @param Ticket model
+     * @param ticket : model
      * @return boolean : true = success or false = failure
      */
     public boolean saveTicket(Ticket ticket){
@@ -64,7 +64,7 @@ public class TicketDAO {
      * vehicle's registration number where out time is null and last time in (order desc, limit 1)
      * "... where p.parking_number = t.parking_number and t.OUT_TIME IS NULL and t.VEHICLE_REG_NUMBER=? order by t.IN_TIME desc limit 1"
      *  
-     * @param vehicle's registration number
+     * @param vehicleRegNumber : vehicle's registration number
      * @return Ticket model object or null
      */
     public Ticket getTicket(String vehicleRegNumber) {
@@ -98,7 +98,7 @@ public class TicketDAO {
 
     /**
      * Upadates a given Ticket model's object
-     * @param ticket
+     * @param ticket : model
      * @return boolean : true = success or false = failure
      */
     public boolean updateTicket(Ticket ticket) {

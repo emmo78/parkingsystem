@@ -24,8 +24,8 @@ public class DataBaseConfig {
     /**
      * To get connected to SGBD
      * @return Connection to SGBD object
-     * @throws ClassNotFoundException
-     * @throws SQLException
+     * @throws ClassNotFoundException : if class not found
+     * @throws SQLException : An exception that provides information on a database accesserror or other errors. 
      */
     public Connection getConnection() throws ClassNotFoundException, SQLException {
         logger.info("Create DB connection");

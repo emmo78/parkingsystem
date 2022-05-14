@@ -37,7 +37,7 @@ public class InputReaderUtil {
     /**
      * Tries to read from input vehicle's registration number 
      * @return vehicule's registration number as a String
-     * @throws IllegalArgumentException if null or only blank space or invalid String input
+     * @throws Exception : IllegalArgumentException if null or only blank space or invalid String input
      */
     public String readVehicleRegistrationNumber() throws Exception {
         try {
