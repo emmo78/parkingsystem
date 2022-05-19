@@ -12,7 +12,6 @@ import com.parkit.parkingsystem.view.ViewerImpl;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +32,6 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -167,11 +165,11 @@ public class ParkingDataBaseIT {
      *  - "CAR2" parked 25 hours ago on spot 1, exited 24 hours ago and then parks today 1 hour ago just after "CAR1" on spot 2
      * Then the two cars exit the park, should update :
      *  - parking spots availability to true
-     *  - tickets out dates and claculate fare to 1.50 
+     *  - tickets out dates and calculate fare to 1.50 
      */
     @Test
     @DisplayName("Check that the fares generated, out times are populated correctly and Parking table is updated with availability true in the database")
-    public void testParkingLotExit(){
+    public void testParkingLotExitPersitsSpotAvalaibilityTrueAndLastTwoTicketsFareAndOutDateTime(){
         //GIVEN
     	ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
     	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to collect ResulSet fields, see below

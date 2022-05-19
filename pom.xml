@@ -109,38 +109,38 @@
 		</dependency>
 	</dependencies>
 
-  <reporting>
-	<plugins>
-		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-project-info-reports-plugin -->
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-project-info-reports-plugin</artifactId>
-			<version>3.3.0</version>
-		</plugin>
+	<reporting>
+		<plugins>
+			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-project-info-reports-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.3.0</version>
+			</plugin>
 
-		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-javadoc-plugin</artifactId>
-			<version>3.4.0</version>
-			<reportSets>
-				<reportSet><!-- by default, id = "default" -->
-					<reports><!-- select non-aggregate reports -->
-						<report>javadoc</report>
-						<report>test-javadoc</report>
-					</reports>
-				</reportSet>
-				<reportSet><!-- aggregate reportSet, to define in poms having modules -->
-					<id>aggregate</id>
-					<inherited>false</inherited><!-- don't run aggregate in child modules -->
-					<reports>
-						<report>aggregate</report>
-					</reports>
-				</reportSet>
-			</reportSets>
-		</plugin>
-    </plugins>
-  </reporting>
+			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.4.0</version>
+				<reportSets>
+					<reportSet><!-- by default, id = "default" -->
+						<reports><!-- select non-aggregate reports -->
+							<report>javadoc</report>
+							<report>test-javadoc</report>
+						</reports>
+					</reportSet>
+					<reportSet><!-- aggregate reportSet, to define in poms having modules -->
+						<id>aggregate</id>
+						<inherited>false</inherited><!-- don't run aggregate in child modules -->
+						<reports>
+							<report>aggregate</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
 
 	<build>
 		<plugins>
