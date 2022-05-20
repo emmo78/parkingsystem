@@ -159,7 +159,7 @@ public class ParkingDataBaseIT {
         			tuple(4, "BIKE", false, 4, "BIKE4", 0d, null),
         			tuple(5, "BIKE", false, 5, "BIKE5", 0d, null));
         tResults.forEach(tR -> {
-        	assertThat(tR.inTime).isCloseTo(expectedInTime, 2000);
+        	assertThat(tR.inTime).isCloseTo(expectedInTime, 3000);
         	/* Verifies that the tR.inTime Date is close to the expectedInTime Date by less than delta (expressed in milliseconds),
         	 * if difference is equal to delta it's ok. */ 
         });
@@ -279,8 +279,8 @@ public class ParkingDataBaseIT {
         			tuple(2, "CAR", true, 2, "CAR2", 1.5),
         			tuple(1, "CAR", true, 1, "CAR1", 1.5));
         tResults.forEach(tR -> {
-        	assertThat(tR.inTime).isCloseTo(expectedInTime, 2000);
-        	assertThat(tR.outTime).isCloseTo(expectedOutTime, 2000);
+        	assertThat(tR.inTime).isCloseTo(expectedInTime, 3000);
+        	assertThat(tR.outTime).isCloseTo(expectedOutTime, 3000);
         	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
         	 * if difference is equal to delta it's ok. */ 
         });

@@ -9,7 +9,7 @@ Quand il sort;
 Alors le ticket persisté a une plaque <plaque>, un tarif à <tarif> et la place persistée a une disponibilité <dispo>;
 
 Exemples:
-|plaque |durée|tarif|dispo |
-|"CAR30"|30   |0,75 |"true"|
-|"CAR20"|20   |0,50 |"true"|
-|"CAR10"|10   |0,25 |"true"|
+	|plaque |durée|tarif|dispo |
+	|"CAR30"|30   |0,00 |"true"|
+	|"CAR20"|20   |0,00 |"true"|
+	|"CAR10"|10   |0,00 |"true"|

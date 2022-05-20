@@ -13,7 +13,12 @@ import com.parkit.parkingsystem.model.Ticket;
  */
 public class FareCalculatorService {
 
-    /**
+	/**
+	 * To calculate Fare discount
+	 */
+	private DiscountFareService discountFareService = new DiscountFareService();
+	
+	/**
      * From a given ticket calculates the fare taking into account the vehicle's type
      * @param ticket : model
      * @throws IllegalArgumentException if type is unknown
@@ -23,20 +28,22 @@ public class FareCalculatorService {
             throw new IllegalArgumentException("Out time provided is incorrect:"+ticket.getOutTime().toString());
         }
 
-        double inHour = ticket.getInTime().getTime(); // Returns the number of milliseconds since
-        double outHour = ticket.getOutTime().getTime(); // January 1, 1970, 00:00:00 GMT represented by this Date object
+        long inHour = ticket.getInTime().getTime(); // Returns the number of milliseconds since
+        long outHour = ticket.getOutTime().getTime(); // January 1, 1970, 00:00:00 GMT represented by this Date object
 
-        double duration = (outHour - inHour) / (1000*3600); // from milliseconds to decimal hours with floating number minimal imprecision
+        double duration = (outHour - inHour) / (1000*3600d); // from milliseconds to decimal hours with floating number minimal imprecision
         try {
 	        switch (ticket.getParkingSpot().getParkingType()){ //When null show up in switch statement, Java will throw NullPointerException
 	            case CAR: {
 	                ticket.setPrice(BigDecimal.valueOf(duration * Fare.CAR_RATE_PER_HOUR).setScale(2, RoundingMode.HALF_UP).doubleValue());
 	                // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
+	                discountFareService.calculateDiscount(ticket);
 	                break;
 	            }
 	            case BIKE: {
 	                ticket.setPrice(BigDecimal.valueOf(duration * Fare.BIKE_RATE_PER_HOUR).setScale(2, RoundingMode.HALF_UP).doubleValue());
 	                // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
+	                discountFareService.calculateDiscount(ticket);
 	                break;
 	            }
 	            default: { //Braces are optional but better readability 

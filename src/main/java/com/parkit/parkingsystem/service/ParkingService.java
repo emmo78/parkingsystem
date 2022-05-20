@@ -170,6 +170,7 @@ public class ParkingService {
             Date outTime = new Date();
             ticket.setOutTime(outTime); //if ticket = null throws a NullPointerException, Will be caught see catch
             fareCalculatorService.calculateFare(ticket); // Throws IllegalArgumentException, Will be caught see catch
+            //ticket is a pointer to the object. Only object'll be modified
             if(ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true); //setup after ticket's update

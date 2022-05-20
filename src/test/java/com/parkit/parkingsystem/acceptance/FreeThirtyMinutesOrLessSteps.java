@@ -13,9 +13,6 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
@@ -27,15 +24,11 @@ import com.parkit.parkingsystem.util.InputReaderUtil;
 import com.parkit.parkingsystem.view.Viewer;
 import com.parkit.parkingsystem.view.ViewerImpl;
 
-import io.cucumber.java.After;
-import io.cucumber.java.AfterStep;
-import io.cucumber.java.Before;
-import io.cucumber.java.BeforeStep;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(MockitoExtension.class) //Is this necessary ?
 public class FreeThirtyMinutesOrLessSteps {
 
     private DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
@@ -44,6 +37,11 @@ public class FreeThirtyMinutesOrLessSteps {
     private DataBasePrepareService dataBasePrepareService  = new DataBasePrepareService();
     
     private InputReaderUtil inputReaderUtil = mock(InputReaderUtil.class); //To mock user input (this class itself uses final class Scanner)
+    /* You can use Cucumber and Mockito at the same time.
+     * You can't use two JUnit runners at the same time.
+     * But if you add Mockito as a dependency to your project and create your mocks like this:
+     * ClassToMock mockedClass = mock(ClassToMock.class); then you should be able to combine the tools.*/
+    
     
     private Viewer viewer = new ViewerImpl();
     ParkingService parkingService;
@@ -150,8 +148,8 @@ public class FreeThirtyMinutesOrLessSteps {
         			1,
         			regNum,
         			fare);
-        assertThat(tResult.inTime).isCloseTo(expectedInTime, 2000);
-        assertThat(tResult.outTime).isCloseTo(expectedOutTime, 2000);
+        assertThat(tResult.inTime).isCloseTo(expectedInTime, 3000);
+        assertThat(tResult.outTime).isCloseTo(expectedOutTime, 3000);
         	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
         	 * if difference is equal to delta it's ok. */
         

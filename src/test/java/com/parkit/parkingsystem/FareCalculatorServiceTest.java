@@ -29,7 +29,7 @@ import java.util.Date;
  */
 public class FareCalculatorServiceTest {
 
-    private FareCalculatorService fareCalculatorService; //System Under Test
+    private FareCalculatorService fareCalculatorService; //Class Under Test
     private Ticket ticket; //Model = only data so don't mock 
     private ParkingSpot parkingSpot; //Model = only data so don't mock
 	ParkingType parkingType; //enumeration can't be mocked
@@ -66,7 +66,7 @@ public class FareCalculatorServiceTest {
      * @param type : vehicle's type
      */
     @ParameterizedTest(name = "{0} minutes in park should cost {1} x fare/h for {2} type")
-    @CsvSource({"60,1,CAR","60,1,BIKE","45,0.75,CAR","45,0.75,BIKE","1440,24,CAR","1440,24,BIKE"}) //24*60=1440
+    @CsvSource({"60,1,CAR","60,1,BIKE","45,0.75,CAR","45,0.75,BIKE","1440,24,CAR","1440,24,BIKE","30,0,CAR","20,0,CAR","10,0,CAR"}) //24*60=1440
     @DisplayName("Nominal cases")
     public void calculateFareNominalCasesTest(int min, double coefFare, String type){
     	
@@ -94,7 +94,7 @@ public class FareCalculatorServiceTest {
         ticket.setOutTime(outTime);
         
         //WHEN
-        fareCalculatorService.calculateFare(ticket);
+        fareCalculatorService.calculateFare(ticket); //ticket is a pointer to the object. Only object'll be modified
         
         //THEN
         assertThat(ticket.getPrice()).isCloseTo(coefFare*fareTypeRate, within(0.01)); //If difference is equal to offset value, assertion is considered valid.
