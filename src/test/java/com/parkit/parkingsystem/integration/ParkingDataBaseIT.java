@@ -55,15 +55,16 @@ public class ParkingDataBaseIT {
     @Mock
     private static InputReaderUtil inputReaderUtil; //To mock user input (this class itself uses final class Scanner)
     
-    private final Viewer viewer = new ViewerImpl(); //Viewer instance    
+    private static Viewer viewer;    
 
     @BeforeAll
-    private static void setUp() throws Exception{
+    private static void setUp() {
         parkingSpotDAO = new ParkingSpotDAO();
         parkingSpotDAO.setDataBaseConfig(dataBaseTestConfig);
         ticketDAO = new TicketDAO();
         ticketDAO.setDataBaseConfig(dataBaseTestConfig);
         dataBasePrepareService = new DataBasePrepareService();
+        viewer = new ViewerImpl(); //Viewer instance
     }
 
     @AfterAll
@@ -73,13 +74,18 @@ public class ParkingDataBaseIT {
         ticketDAO.setDataBaseConfig(null);
         ticketDAO = null;
         dataBasePrepareService = null;
+        viewer = null;
     }
 
     @BeforeEach
-    private void setUpPerTest() throws Exception {
+    private void setUpPerTest() {
         lenient().when(inputReaderUtil.readSelection()).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(2).thenReturn(2).thenReturn(1).thenReturn(2);
         // on first call uses first thenReturn, on second uses second ... on seventh uses seventh, on eighth uses first ...
-        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("CAR1").thenReturn("CAR2").thenReturn("CAR3").thenReturn("BIKE4").thenReturn("BIKE5").thenReturn("CAR6").thenReturn("BIKE7");
+        try {
+			when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("CAR1").thenReturn("CAR2").thenReturn("CAR3").thenReturn("BIKE4").thenReturn("BIKE5").thenReturn("CAR6").thenReturn("BIKE7");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
         dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
     }
 
@@ -125,7 +131,7 @@ public class ParkingDataBaseIT {
             dataBaseTestConfig.closeResultSet(rs);
             dataBaseTestConfig.closePreparedStatement(ps);
         }catch (Exception ex){
-            viewer.println(ex.toString());
+        	ex.printStackTrace();
         }finally {
             dataBaseTestConfig.closeConnection(con);
         }
@@ -134,7 +140,7 @@ public class ParkingDataBaseIT {
         try {
 			verify(inputReaderUtil, times(5)).readVehicleRegistrationNumber(); // but only 5 times used because the 2 extra vehicles shouldn't be treated
 		} catch (Exception e) {
-            viewer.println(e.toString());
+			e.printStackTrace();
 		}
         assertThat(tResults.size()).isEqualTo(5);
         assertThat(tResults)
@@ -208,13 +214,13 @@ public class ParkingDataBaseIT {
 		                psP.executeUpdate();
 		            }
             	} catch (Exception ex){
-                    viewer.println(ex.toString());
+            		ex.printStackTrace();
             	}
             });
             dataBaseTestConfig.closePreparedStatement(psT);
             dataBaseTestConfig.closePreparedStatement(psP);
         } catch (Exception ex){
-            viewer.println(ex.toString());
+        	ex.printStackTrace();
         }finally {
             dataBaseTestConfig.closeConnection(con);
         }  	
@@ -250,7 +256,7 @@ public class ParkingDataBaseIT {
             dataBaseTestConfig.closeResultSet(rs);
             dataBaseTestConfig.closePreparedStatement(ps);
         }catch (Exception ex){
-            viewer.println(ex.toString());
+        	ex.printStackTrace();
         }finally {
             dataBaseTestConfig.closeConnection(con);
         }
@@ -258,7 +264,7 @@ public class ParkingDataBaseIT {
         try {
 			verify(inputReaderUtil, times(2)).readVehicleRegistrationNumber(); // 2 times used
 		} catch (Exception e) {
-            viewer.println(e.toString());
+			e.printStackTrace();
 		}
         assertThat(tResults.size()).isEqualTo(2);
         assertThat(tResults)
