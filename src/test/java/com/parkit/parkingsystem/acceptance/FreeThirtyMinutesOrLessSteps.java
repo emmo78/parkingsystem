@@ -1,6 +1,7 @@
 package com.parkit.parkingsystem.acceptance;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,7 +28,9 @@ import com.parkit.parkingsystem.view.Viewer;
 import com.parkit.parkingsystem.view.ViewerImpl;
 
 import io.cucumber.java.After;
+import io.cucumber.java.AfterStep;
 import io.cucumber.java.Before;
+import io.cucumber.java.BeforeStep;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -35,45 +38,23 @@ import io.cucumber.java.en.When;
 @ExtendWith(MockitoExtension.class)
 public class FreeThirtyMinutesOrLessSteps {
 
-    private DataBaseTestConfig dataBaseTestConfig;
-    private ParkingSpotDAO parkingSpotDAO;
-    private TicketDAO ticketDAO;
-    private DataBasePrepareService dataBasePrepareService;
+    private DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
+    private ParkingSpotDAO parkingSpotDAO= new ParkingSpotDAO();
+    private TicketDAO ticketDAO = new TicketDAO();
+    private DataBasePrepareService dataBasePrepareService  = new DataBasePrepareService();
     
-    @Mock
-    private InputReaderUtil inputReaderUtil; //To mock user input (this class itself uses final class Scanner)
+    private InputReaderUtil inputReaderUtil = mock(InputReaderUtil.class); //To mock user input (this class itself uses final class Scanner)
     
-    private Viewer viewer;
+    private Viewer viewer = new ViewerImpl();
     ParkingService parkingService;
-	
 	Date expectedInTime;
     
-    @Before
-    private void setUpPerExample() {
-    	dataBaseTestConfig = new DataBaseTestConfig();
-    	parkingSpotDAO = new ParkingSpotDAO();
-		parkingSpotDAO.setDataBaseConfig(dataBaseTestConfig);
-    	ticketDAO = new TicketDAO();
-		ticketDAO.setDataBaseConfig(dataBaseTestConfig);
-    	dataBasePrepareService = new DataBasePrepareService();
-		dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
-		viewer = new ViewerImpl(); //Viewer instance
-		parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
-    }
-    
-    @After
-    private void unsetPerExample() {
-        parkingSpotDAO.setDataBaseConfig(null);
-        parkingSpotDAO = null;
-        ticketDAO.setDataBaseConfig(null);
-        ticketDAO = null;
-        dataBasePrepareService = null;
-        viewer = null;
-        parkingService = null;
-    }
-   
 	@Given("utilisateur {string} est garé depuis {int} minutes;")
 	public void userRegNumParkedSince(String regNum, int min) {
+		parkingSpotDAO.setDataBaseConfig(dataBaseTestConfig);
+		ticketDAO.setDataBaseConfig(dataBaseTestConfig);
+ 		dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
+		parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
 		try {
 			when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNum);
 		} catch (Exception e) {
@@ -172,8 +153,15 @@ public class FreeThirtyMinutesOrLessSteps {
         assertThat(tResult.inTime).isCloseTo(expectedInTime, 2000);
         assertThat(tResult.outTime).isCloseTo(expectedOutTime, 2000);
         	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
-        	 * if difference is equal to delta it's ok. */ 
-
+        	 * if difference is equal to delta it's ok. */
+        
+        parkingSpotDAO.setDataBaseConfig(null);
+        parkingSpotDAO = null;
+        ticketDAO.setDataBaseConfig(null);
+        ticketDAO = null;
+        dataBasePrepareService = null;
+        viewer = null;
+        parkingService = null;
     }
 
 	
