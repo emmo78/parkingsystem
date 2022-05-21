@@ -178,7 +178,7 @@ public class ParkingDataBaseIT {
     public void testParkingLotExitPersitsSpotAvalaibilityTrueAndLastTwoTicketsFareAndOutDateTime(){
         //GIVEN
     	ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
-    	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to collect ResulSet fields, see below
+    	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to set/collect ResulSet fields, see below
     	
     	Date expectedInTime = new Date(System.currentTimeMillis() - (3600 * 1000));
     	Date expectedOutTime = new Date();

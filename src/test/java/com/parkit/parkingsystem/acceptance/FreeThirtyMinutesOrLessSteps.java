@@ -28,30 +28,53 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
+/**
+ * Implements scenario steps
+ * Before steps declares : DataBaseTestConfig, DAOs, DataBasePrepareService, InputReaderUtil, Viewer, ParkingService and expected in time Date
+ *  
+ * @author Olivier MOREL
+ *
+ */
 @ExtendWith(MockitoExtension.class) //Is this necessary ?
 public class FreeThirtyMinutesOrLessSteps {
 
-    private DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
-    private ParkingSpotDAO parkingSpotDAO= new ParkingSpotDAO();
-    private TicketDAO ticketDAO = new TicketDAO();
-    private DataBasePrepareService dataBasePrepareService  = new DataBasePrepareService();
-    
-    private InputReaderUtil inputReaderUtil = mock(InputReaderUtil.class); //To mock user input (this class itself uses final class Scanner)
-    /* You can use Cucumber and Mockito at the same time.
-     * You can't use two JUnit runners at the same time.
-     * But if you add Mockito as a dependency to your project and create your mocks like this:
-     * ClassToMock mockedClass = mock(ClassToMock.class); then you should be able to combine the tools.*/
-    
-    
-    private Viewer viewer = new ViewerImpl();
+    private DataBaseTestConfig dataBaseTestConfig;
+    private ParkingSpotDAO parkingSpotDAO;
+    private TicketDAO ticketDAO;
+    private DataBasePrepareService dataBasePrepareService;
+    private InputReaderUtil inputReaderUtil;
+    private Viewer viewer;
     ParkingService parkingService;
 	Date expectedInTime;
     
-	@Given("utilisateur {string} est garé depuis {int} minutes;")
+	/**
+	 *  Given Step :
+	 *  - initializes DataBaseTestConfig, Viewer, ParkingService,
+	 *  - initializes DAOs and sets DataBaseTestConfig,
+	 *  - initializes DataBasePrepareService and clear DB entries,
+	 *  - mocks InputReaderUtil and configures when...then... for vehicle registration number given in step definition,
+	 *  - initializes expected in time Date with current DateTime minus minutes vehicle registration number given in step definition,
+	 *  - constructs a TestResult with vehicle registration number, in time Date, parked on spot 1,
+	 *  - and persists it in Test DB.
+	 * 
+	 * @param regNum : vehicle registration number given in step definition for each outline
+	 * @param min : minutes the vehicle has been parked, given in step definition
+	 */
+	@Given("utilisateur avec l'immatriculation {string} est garé depuis {int} minutes;")
 	public void userRegNumParkedSince(String regNum, int min) {
+		dataBaseTestConfig = new DataBaseTestConfig();
+		parkingSpotDAO= new ParkingSpotDAO();
 		parkingSpotDAO.setDataBaseConfig(dataBaseTestConfig);
+		ticketDAO = new TicketDAO();
 		ticketDAO.setDataBaseConfig(dataBaseTestConfig);
- 		dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
+		dataBasePrepareService  = new DataBasePrepareService();
+		dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
+		inputReaderUtil = mock(InputReaderUtil.class); //To mock user input (this class itself uses final class Scanner)
+	    /* You can use Cucumber and Mockito at the same time.
+	     * You can't use two JUnit runners at the same time.
+	     * But if you add Mockito as a dependency to your project and create your mocks like this:
+	     * ClassToMock mockedClass = mock(ClassToMock.class); then you should be able to combine the tools.*/
+		viewer = new ViewerImpl();
 		parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
 		try {
 			when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNum);
@@ -92,11 +115,25 @@ public class FreeThirtyMinutesOrLessSteps {
         con = null;
 	}
 	
+	/**
+	 * When Step
+	 * User exits parking
+	 */
 	@When("il sort;")
 	public void userParkingExit() {
 		parkingService.processExitingVehicle();
 	}
 	
+	/**
+	 *  Then Step :
+	 *  - declares and initializes an expected out time Date and TestResult which is a nested class with fields to collect ResulSet fields, see below
+	 *  - tests if parking spots availability persisted to true,
+	 *  - tests if ticket persisted has a vehicle number sets with regNum, a fare sets to 0.0 and correct inTime, outTime ...
+	 *  - unset and nullify : parkingService, parkingSpotDAO, ticketDAO, dataBasePrepareService, dataBaseTestConfig, viewer, inputReaderUtil and expectedInTime 
+	 * @param regNum: vehicle registration number given in step definition for each outline
+	 * @param fare : given fare in step definition = 0.0
+	 * @param availability : given in step definition = true
+	 */
 	@Then("le ticket persisté a une plaque {string}, un tarif à {double} et la place persistée a une disponibilité {string};")
 	public void test(String regNum, double fare, String availability) {
     	Date expectedOutTime = new Date();
@@ -127,6 +164,7 @@ public class FreeThirtyMinutesOrLessSteps {
         }finally {
             dataBaseTestConfig.closeConnection(con);
         }
+        con = null;
  
         try {
 			verify(inputReaderUtil, times(1)).readVehicleRegistrationNumber(); // 1 time used
@@ -144,7 +182,7 @@ public class FreeThirtyMinutesOrLessSteps {
         	.containsExactly(
         			1,
         			"CAR",
-        			Boolean.valueOf(availability).booleanValue(),
+        			Boolean.valueOf(availability).booleanValue(), //(1)
         			1,
         			regNum,
         			fare);
@@ -152,14 +190,22 @@ public class FreeThirtyMinutesOrLessSteps {
         assertThat(tResult.outTime).isCloseTo(expectedOutTime, 3000);
         	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
         	 * if difference is equal to delta it's ok. */
+        	/*(1) :
+        	 * Cucumber comes with the following built-in parameter types :
+        	 * {int}, {float}, {word}, {string}, {} anonymous, {bigdecimal}, {double}, {biginteger}, {byte}, {short} and {long}.
+        	 * So not boolean ...
+        	 * https://github.com/cucumber/cucumber-expressions#readme */
         
+        parkingService = null;
         parkingSpotDAO.setDataBaseConfig(null);
         parkingSpotDAO = null;
         ticketDAO.setDataBaseConfig(null);
         ticketDAO = null;
         dataBasePrepareService = null;
+        dataBaseTestConfig = null;
         viewer = null;
-        parkingService = null;
+        inputReaderUtil = null;
+        expectedInTime = null;
     }
 
 	

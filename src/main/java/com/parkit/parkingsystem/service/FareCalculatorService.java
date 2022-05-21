@@ -28,10 +28,10 @@ public class FareCalculatorService {
             throw new IllegalArgumentException("Out time provided is incorrect:"+ticket.getOutTime().toString());
         }
 
-        long inHour = ticket.getInTime().getTime(); // Returns the number of milliseconds since
+        long inHour = ticket.getInTime().getTime(); // Returns the number of milliseconds (long) since
         long outHour = ticket.getOutTime().getTime(); // January 1, 1970, 00:00:00 GMT represented by this Date object
 
-        double duration = (outHour - inHour) / (1000*3600d); // from milliseconds to decimal hours with floating number minimal imprecision
+        double duration = (outHour - inHour) / (1000*3600d); // from milliseconds to decimal hours, d for double casting
         try {
 	        switch (ticket.getParkingSpot().getParkingType()){ //When null show up in switch statement, Java will throw NullPointerException
 	            case CAR: {

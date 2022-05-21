@@ -41,7 +41,7 @@ public class DiscountFareServiceTest {
     	Date outTime = new Date();
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
-        double duration = (outTime.getTime() - inTime.getTime()) / (1000*3600d); // from milliseconds to decimal hours with floating number minimal imprecision
+        double duration = (outTime.getTime() - inTime.getTime()) / (1000*3600d); // from milliseconds to decimal hours, d for double casting
         ticket.setPrice(BigDecimal.valueOf(duration * Fare.CAR_RATE_PER_HOUR).setScale(2, RoundingMode.HALF_UP).doubleValue());
         // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
         
