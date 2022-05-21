@@ -50,6 +50,10 @@ public class ParkingSpotDAO {
             }
             dataBaseConfig.closeResultSet(rs);
             dataBaseConfig.closePreparedStatement(ps);
+        }catch(ClassNotFoundException e) {
+        	logger.error("Error fetching next available slot",e);
+        }catch (SQLException e) {
+        	logger.error("Error fetching next available slot",e);
         }catch (Exception ex){
             logger.error("Error fetching next available slot",ex);
         }finally {

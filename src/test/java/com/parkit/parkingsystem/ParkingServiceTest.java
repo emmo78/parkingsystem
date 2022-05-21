@@ -14,7 +14,6 @@ import com.parkit.parkingsystem.view.ViewerImpl;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -278,7 +277,7 @@ public class ParkingServiceTest {
 	        			ParkingType.valueOf("CAR"),
 	        			true, // (1)
 	        			"REGNUM",
-	        			1.5); // results of duration x rate
+	        			1.5); // results of duration x rate, double by default
 			        /* (1) ticket parkingSpot field is a pointer to the object which field isAvailable is set from false to true
 			         * after ticket's update to SGBD (which contains a FK to parking index (PK))*/
 	        	assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
@@ -681,7 +680,7 @@ public class ParkingServiceTest {
 	        			ParkingType.valueOf("CAR"),
 	        			false, // (1)
 	        			"REGNUM",
-	        			1.5); // results of duration x rate
+	        			1.5); // results of duration x rate, double by default
 	        		/* (1) not true because ParkingSpot's method setAvailable won't be used */
 	        	assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
 	        	assertThat(ticketCaptor.getValue().getOutTime()).isCloseTo(expectedOutTime, 1000);
@@ -775,7 +774,7 @@ public class ParkingServiceTest {
 	        			ParkingType.valueOf("CAR"),
 	        			true, // (1)
 	        			"REGNUM",
-	        			1.5); // results of duration x rate
+	        			1.5); // results of duration x rate, double by default
 		        	/* (1) ticket parkingSpot field is a pointer to the object which is set from false to true
 			         * after ticket's update to SGBD which contains a FK to parking index (PK).
 			         * But parking update fails, so not persisted in SGBD !!!

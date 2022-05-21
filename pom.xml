@@ -78,6 +78,12 @@
 			<version>${dep.junit.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-core -->
+		<dependency>
+		    <groupId>io.cucumber</groupId>
+		    <artifactId>cucumber-core</artifactId>
+		    <version>${dep.cucumber.version}</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-jvm -->
 		<dependency>
 			<groupId>io.cucumber</groupId>
@@ -93,13 +99,6 @@
 			<version>${dep.cucumber.version}</version>
 			<scope>test</scope>
 		</dependency>		
-		<!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-spring -->
-		<dependency>
-			<groupId>io.cucumber</groupId>
-			<artifactId>cucumber-spring</artifactId>
-			<version>${dep.cucumber.version}</version>
-			<scope>test</scope>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-junit -->
 		<dependency>
 			<groupId>io.cucumber</groupId>
@@ -109,38 +108,38 @@
 		</dependency>
 	</dependencies>
 
-  <reporting>
-	<plugins>
-		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-project-info-reports-plugin -->
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-project-info-reports-plugin</artifactId>
-			<version>3.3.0</version>
-		</plugin>
+	<reporting>
+		<plugins>
+			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-project-info-reports-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.3.0</version>
+			</plugin>
 
-		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-javadoc-plugin</artifactId>
-			<version>3.4.0</version>
-			<reportSets>
-				<reportSet><!-- by default, id = "default" -->
-					<reports><!-- select non-aggregate reports -->
-						<report>javadoc</report>
-						<report>test-javadoc</report>
-					</reports>
-				</reportSet>
-				<reportSet><!-- aggregate reportSet, to define in poms having modules -->
-					<id>aggregate</id>
-					<inherited>false</inherited><!-- don't run aggregate in child modules -->
-					<reports>
-						<report>aggregate</report>
-					</reports>
-				</reportSet>
-			</reportSets>
-		</plugin>
-    </plugins>
-  </reporting>
+			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.4.0</version>
+				<reportSets>
+					<reportSet><!-- by default, id = "default" -->
+						<reports><!-- select non-aggregate reports -->
+							<report>javadoc</report>
+							<report>test-javadoc</report>
+						</reports>
+					</reportSet>
+					<reportSet><!-- aggregate reportSet, to define in poms having modules -->
+						<id>aggregate</id>
+						<inherited>false</inherited><!-- don't run aggregate in child modules -->
+						<reports>
+							<report>aggregate</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
 
 	<build>
 		<plugins>

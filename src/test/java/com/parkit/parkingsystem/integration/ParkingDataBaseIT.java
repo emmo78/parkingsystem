@@ -12,7 +12,6 @@ import com.parkit.parkingsystem.view.ViewerImpl;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +32,6 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -57,15 +55,16 @@ public class ParkingDataBaseIT {
     @Mock
     private static InputReaderUtil inputReaderUtil; //To mock user input (this class itself uses final class Scanner)
     
-    private final Viewer viewer = new ViewerImpl(); //Viewer instance    
+    private static Viewer viewer;    
 
     @BeforeAll
-    private static void setUp() throws Exception{
+    private static void setUp() {
         parkingSpotDAO = new ParkingSpotDAO();
         parkingSpotDAO.setDataBaseConfig(dataBaseTestConfig);
         ticketDAO = new TicketDAO();
         ticketDAO.setDataBaseConfig(dataBaseTestConfig);
         dataBasePrepareService = new DataBasePrepareService();
+        viewer = new ViewerImpl(); //Viewer instance
     }
 
     @AfterAll
@@ -75,13 +74,18 @@ public class ParkingDataBaseIT {
         ticketDAO.setDataBaseConfig(null);
         ticketDAO = null;
         dataBasePrepareService = null;
+        viewer = null;
     }
 
     @BeforeEach
-    private void setUpPerTest() throws Exception {
+    private void setUpPerTest() {
         lenient().when(inputReaderUtil.readSelection()).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(2).thenReturn(2).thenReturn(1).thenReturn(2);
         // on first call uses first thenReturn, on second uses second ... on seventh uses seventh, on eighth uses first ...
-        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("CAR1").thenReturn("CAR2").thenReturn("CAR3").thenReturn("BIKE4").thenReturn("BIKE5").thenReturn("CAR6").thenReturn("BIKE7");
+        try {
+			when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("CAR1").thenReturn("CAR2").thenReturn("CAR3").thenReturn("BIKE4").thenReturn("BIKE5").thenReturn("CAR6").thenReturn("BIKE7");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
         dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
     }
 
@@ -127,7 +131,7 @@ public class ParkingDataBaseIT {
             dataBaseTestConfig.closeResultSet(rs);
             dataBaseTestConfig.closePreparedStatement(ps);
         }catch (Exception ex){
-            viewer.println(ex.toString());
+        	ex.printStackTrace();
         }finally {
             dataBaseTestConfig.closeConnection(con);
         }
@@ -136,7 +140,7 @@ public class ParkingDataBaseIT {
         try {
 			verify(inputReaderUtil, times(5)).readVehicleRegistrationNumber(); // but only 5 times used because the 2 extra vehicles shouldn't be treated
 		} catch (Exception e) {
-            viewer.println(e.toString());
+			e.printStackTrace();
 		}
         assertThat(tResults.size()).isEqualTo(5);
         assertThat(tResults)
@@ -155,7 +159,7 @@ public class ParkingDataBaseIT {
         			tuple(4, "BIKE", false, 4, "BIKE4", 0d, null),
         			tuple(5, "BIKE", false, 5, "BIKE5", 0d, null));
         tResults.forEach(tR -> {
-        	assertThat(tR.inTime).isCloseTo(expectedInTime, 2000);
+        	assertThat(tR.inTime).isCloseTo(expectedInTime, 3000);
         	/* Verifies that the tR.inTime Date is close to the expectedInTime Date by less than delta (expressed in milliseconds),
         	 * if difference is equal to delta it's ok. */ 
         });
@@ -167,14 +171,14 @@ public class ParkingDataBaseIT {
      *  - "CAR2" parked 25 hours ago on spot 1, exited 24 hours ago and then parks today 1 hour ago just after "CAR1" on spot 2
      * Then the two cars exit the park, should update :
      *  - parking spots availability to true
-     *  - tickets out dates and claculate fare to 1.50 
+     *  - tickets out dates and calculate fare to 1.50 
      */
     @Test
     @DisplayName("Check that the fares generated, out times are populated correctly and Parking table is updated with availability true in the database")
-    public void testParkingLotExit(){
+    public void testParkingLotExitPersitsSpotAvalaibilityTrueAndLastTwoTicketsFareAndOutDateTime(){
         //GIVEN
     	ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
-    	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to collect ResulSet fields, see below
+    	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to set/collect ResulSet fields, see below
     	
     	Date expectedInTime = new Date(System.currentTimeMillis() - (3600 * 1000));
     	Date expectedOutTime = new Date();
@@ -210,13 +214,13 @@ public class ParkingDataBaseIT {
 		                psP.executeUpdate();
 		            }
             	} catch (Exception ex){
-                    viewer.println(ex.toString());
+            		ex.printStackTrace();
             	}
             });
             dataBaseTestConfig.closePreparedStatement(psT);
             dataBaseTestConfig.closePreparedStatement(psP);
         } catch (Exception ex){
-            viewer.println(ex.toString());
+        	ex.printStackTrace();
         }finally {
             dataBaseTestConfig.closeConnection(con);
         }  	
@@ -252,7 +256,7 @@ public class ParkingDataBaseIT {
             dataBaseTestConfig.closeResultSet(rs);
             dataBaseTestConfig.closePreparedStatement(ps);
         }catch (Exception ex){
-            viewer.println(ex.toString());
+        	ex.printStackTrace();
         }finally {
             dataBaseTestConfig.closeConnection(con);
         }
@@ -260,7 +264,7 @@ public class ParkingDataBaseIT {
         try {
 			verify(inputReaderUtil, times(2)).readVehicleRegistrationNumber(); // 2 times used
 		} catch (Exception e) {
-            viewer.println(e.toString());
+			e.printStackTrace();
 		}
         assertThat(tResults.size()).isEqualTo(2);
         assertThat(tResults)
@@ -275,8 +279,8 @@ public class ParkingDataBaseIT {
         			tuple(2, "CAR", true, 2, "CAR2", 1.5),
         			tuple(1, "CAR", true, 1, "CAR1", 1.5));
         tResults.forEach(tR -> {
-        	assertThat(tR.inTime).isCloseTo(expectedInTime, 2000);
-        	assertThat(tR.outTime).isCloseTo(expectedOutTime, 2000);
+        	assertThat(tR.inTime).isCloseTo(expectedInTime, 3000);
+        	assertThat(tR.outTime).isCloseTo(expectedOutTime, 3000);
         	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
         	 * if difference is equal to delta it's ok. */ 
         });
