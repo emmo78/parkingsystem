@@ -66,7 +66,7 @@ public class FareCalculatorServiceTest {
      * @param type : vehicle's type
      */
     @ParameterizedTest(name = "{0} minutes in park should cost {1} x fare/h for {2} type")
-    @CsvSource({"60,1,CAR","60,1,BIKE","45,0.75,CAR","45,0.75,BIKE","1440,24,CAR","1440,24,BIKE","30,0,CAR","20,0,CAR","10,0,CAR"}) //24*60=1440
+    @CsvSource({"60,1,CAR","60,1,BIKE","45,0.75,CAR","45,0.75,BIKE","1440,24,CAR","1440,24,BIKE","30,0,CAR","20,0,CAR","10,0,CAR","31,0.5167,CAR"}) //24*60=1440
     @DisplayName("Nominal cases")
     public void calculateFareNominalCasesTest(int min, double coefFare, String type){
     	
