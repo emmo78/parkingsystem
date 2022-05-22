@@ -1,6 +1,7 @@
 # Author: oliviermorel.oc1@gmail.com
 # language: fr
 
+@freeThirtyMinutesOrLess
 Fonctionnalité:  Gratuité du tarif pour 30 minutes ou moins;
 	En tant qu'utilisateur, je souhaite la gratuité du tarif pour une occupation inférieure ou égale à 30 minutes afin de ne pas congestionner le parking
 

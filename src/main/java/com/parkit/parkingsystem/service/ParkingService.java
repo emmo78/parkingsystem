@@ -59,7 +59,13 @@ public class ParkingService {
 
                 /* Needs computer standards are defined in terms of Greenwich mean time (GMT)
                  * to prevent summer/winter timetable changes if the car park is used at night
-                 * but will need a time zone offset to display in LocalDateTime */
+                 * but will need a time zone offset to display in LocalDateTime 
+                 * Or use of GregorianCalendar :
+                 *  // create a Central Europe Standard Time time zone
+ 				 * SimpleTimeZone cet = new SimpleTimeZone(+1 * 60 * 60 * 1000, ids[0]);
+				 *  // set up rules for Daylight Saving Time
+				 * cet.setStartRule(Calendar.APRIL, 1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
+ 				 * cet.setEndRule(Calendar.OCTOBER, -1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);*/
 
                 Date inTime = new Date();
                 Ticket ticket = new Ticket();
