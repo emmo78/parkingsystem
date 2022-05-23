@@ -169,7 +169,7 @@ public class FivePercentOffForRecurringUsersSteps {
             		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER "
             		+ "where t.In_TIME = ?");
             Timestamp ts = new Timestamp(BigDecimal.valueOf(expectedInTime.getTime()/1000d).setScale(0, RoundingMode.HALF_UP).longValue()*1000);
-            //To Round Half Up from millisecond (d for double) to second (long so no d)
+            //To Round Half Up from millisecond (d for double) to second (long so no d) because MySQL do this.
             ps.setTimestamp(1, ts);
             ResultSet rs = ps.executeQuery();
             while(rs.next()){

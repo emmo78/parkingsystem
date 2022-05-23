@@ -118,4 +118,11 @@ public class TicketDAO {
             dataBaseConfig.closeConnection(con); //The finally block will be executed even after a return statement in a method.
         }
     }
+
+	public Boolean isRecurrentUserTicket() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
 }
