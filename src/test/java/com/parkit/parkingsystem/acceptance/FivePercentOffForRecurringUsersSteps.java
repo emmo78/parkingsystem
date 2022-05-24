@@ -21,6 +21,7 @@ import java.util.List;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
@@ -210,7 +211,7 @@ public class FivePercentOffForRecurringUsersSteps {
         			Boolean.valueOf(availability).booleanValue(), //(1)
         			1,
         			regNum,
-        			1.50*(1-reduc/100d)); //reduc is int so d for decimal division
+        			BigDecimal.valueOf(1.50*(1-reduc/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue()); //reduc is int so d for decimal division 
         assertThat(tResult.inTime).isCloseTo(expectedInTime, 3000);
         assertThat(tResult.outTime).isCloseTo(expectedOutTime, 3000);
         	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),

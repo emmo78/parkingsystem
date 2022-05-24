@@ -37,13 +37,13 @@ public class FareCalculatorService {
 	            case CAR: {
 	                ticket.setPrice(BigDecimal.valueOf(duration * Fare.CAR_RATE_PER_HOUR).setScale(2, RoundingMode.HALF_UP).doubleValue());
 	                // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
-	                discountFareService.calculateDiscount(ticket);
+	                discountFareService.fareForThirtyOrLessMinutes(ticket);
 	                break;
 	            }
 	            case BIKE: {
 	                ticket.setPrice(BigDecimal.valueOf(duration * Fare.BIKE_RATE_PER_HOUR).setScale(2, RoundingMode.HALF_UP).doubleValue());
 	                // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
-	                discountFareService.calculateDiscount(ticket);
+	                discountFareService.fareForThirtyOrLessMinutes(ticket);
 	                break;
 	            }
 	            default: { //Braces are optional but better readability 
@@ -54,4 +54,9 @@ public class FareCalculatorService {
         	throw new IllegalArgumentException("Type is null");
         }
     }
+
+	public void recurrentUser(Ticket ticket) {
+		// TODO Auto-generated method stub
+		
+	}
 }

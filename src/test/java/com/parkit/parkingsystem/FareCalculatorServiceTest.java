@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 /**
@@ -97,9 +99,23 @@ public class FareCalculatorServiceTest {
         fareCalculatorService.calculateFare(ticket); //ticket is a pointer to the object. Only object'll be modified
         
         //THEN
-        assertThat(ticket.getPrice()).isCloseTo(coefFare*fareTypeRate, within(0.01)); //If difference is equal to offset value, assertion is considered valid.
+        assertThat(ticket.getPrice()).isCloseTo(BigDecimal.valueOf(coefFare*fareTypeRate).setScale(2, RoundingMode.HALF_UP).doubleValue(), within(0.01)); //If difference is equal to offset value, assertion is considered valid.
     }
 
+    @Test
+    @DisplayName("Test 5% off for reccurent users")
+    public void recurrentUserTestShouldHaveFivePercentOff() {
+    	//GIVEN
+    	ticket.setPrice(1.50);
+ 
+    	//WHEN
+    	fareCalculatorService.recurrentUser(ticket);
+
+    	//THEN
+    	assertThat(ticket.getPrice()).isCloseTo(BigDecimal.valueOf(1.50*(1-5/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue(), within(0.01));
+    }
+    
+    
     /**
      * Nested Class for corner case's tests
      * @author Olivier MOREL

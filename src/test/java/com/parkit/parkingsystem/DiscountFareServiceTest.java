@@ -1,6 +1,7 @@
 package com.parkit.parkingsystem;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -9,6 +10,7 @@ import java.util.Date;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -35,7 +37,7 @@ public class DiscountFareServiceTest {
     @ParameterizedTest(name = "{0} minute in park should cost 0.00")
     @ValueSource(ints = {30, 20, 10})
     @DisplayName("Nominal cases")
-    public void fareForThirtyOrLessMinutesShouldBeZeroTest(int min){
+    public void fareForThirtyOrLessMinutesTestShouldSetPriceToZero(int min){
     	//GIVEN
     	Date inTime = new Date(System.currentTimeMillis() - (min * 60 * 1000));
     	Date outTime = new Date();
@@ -46,9 +48,23 @@ public class DiscountFareServiceTest {
         // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
         
     	//WHEN
-        discountFareService.calculateDiscount(ticket); //ticket is a pointer to the object. Only object'll be modified
+        discountFareService.fareForThirtyOrLessMinutes(ticket); //ticket is a pointer to the object. Only object'll be modified
         
     	//THEN
         assertThat(ticket.getPrice()).isEqualTo(0);
     }
+    
+    @Test
+    @DisplayName("Test 5% off for reccurent users")
+    public void fivePourcentsOffTestShouldReducePriceByFivePercent() {
+    	//GIVEN
+    	ticket.setPrice(1.50);
+ 
+    	//WHEN
+    	discountFareService.fivePourcentsOff(ticket);
+
+    	//THEN
+    	assertThat(ticket.getPrice()).isCloseTo(BigDecimal.valueOf(1.50*(1-5/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue(), within(0.01));
+    }
+
 }

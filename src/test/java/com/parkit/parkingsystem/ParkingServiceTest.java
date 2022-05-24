@@ -277,7 +277,7 @@ public class ParkingServiceTest {
 	        			ParkingType.valueOf("CAR"),
 	        			true, // (1)
 	        			"REGNUM",
-	        			1.5); // results of duration x rate, double by default
+	        			1.50); // results of duration x rate, double by default
 			        /* (1) ticket parkingSpot field is a pointer to the object which field isAvailable is set from false to true
 			         * after ticket's update to SGBD (which contains a FK to parking index (PK))*/
 	        	assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
