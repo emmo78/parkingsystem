@@ -119,10 +119,8 @@ public class TicketDAO {
         }
     }
 
-	public Boolean isRecurrentUserTicket() {
+	public Boolean isRecurringUserTicket(Ticket ticket) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-
 }

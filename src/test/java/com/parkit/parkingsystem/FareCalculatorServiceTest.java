@@ -103,14 +103,14 @@ public class FareCalculatorServiceTest {
     }
 
     @Test
-    @DisplayName("Test 5% off for reccurent users")
-    public void recurrentUserTestShouldHaveFivePercentOff() {
+    @DisplayName("Test 5% off for reccurring users")
+    public void recurringUserTestShouldHaveFivePercentOff() {
     	//GIVEN
     	ticket.setPrice(1.50);
  
     	//WHEN
-    	fareCalculatorService.recurrentUser(ticket);
-
+    	fareCalculatorService.recurringUser(ticket);
+    	
     	//THEN
     	assertThat(ticket.getPrice()).isCloseTo(BigDecimal.valueOf(1.50*(1-5/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue(), within(0.01));
     }

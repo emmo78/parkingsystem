@@ -35,6 +35,7 @@ public class TicketDAOSIT {
     private List<Ticket> tickets;
 	private Calendar inTimeCal;
 	private Calendar outTimeCal;
+	private Ticket ticket;
 	private TicketDAO ticketDAO; //SIT
     
     /**
@@ -49,6 +50,7 @@ public class TicketDAOSIT {
 		dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
     	parkingSpot = new ParkingSpot(1, ParkingType.CAR, true);
 		tickets = new ArrayList<>();
+		ticket = new Ticket();
     }
 
 	/**
@@ -68,6 +70,7 @@ public class TicketDAOSIT {
     	parkingSpot = null;
     	inTimeCal = null;
     	outTimeCal = null;
+    	ticket = null;
      }
     
     /**
@@ -80,29 +83,36 @@ public class TicketDAOSIT {
     @ParameterizedTest(name = "{0} times for user FID in park last month should be {1} for recurrent user {2}")
     @CsvSource({"11,true,FID","10,false,FID","11,false,DIF"})
     @DisplayName("Nominal cases")
-    public void isRecurrentUserTicketTestShouldBeTrueIfMoreTenTimesLastMonth(int times, String isRecurrentS, String regNum) {
+    public void isRecurringUserTicketTestShouldBeTrueIfMoreTenTimesLastMonth(int times, String isRecurrentS, String regNum) {
     	
     	//GIVEN
 		inTimeCal = GregorianCalendar.getInstance();
 		inTimeCal.setTimeInMillis(inTimeCal.getTimeInMillis()-3600*1000);
 		outTimeCal = GregorianCalendar.getInstance();
+		ticket.setParkingSpot(parkingSpot);
+		ticket.setVehicleRegNumber(regNum);
+		ticket.setPrice(0);
+		ticket.setInTime(inTimeCal.getTime());
+		ticket.setOutTime(null);
+		
 		inTimeCal.set(Calendar.DATE, 1); //set date at the begin of month
 		outTimeCal.set(Calendar.DATE, 1);
 		inTimeCal.add(Calendar.MONTH, -1); //One month ago
 		outTimeCal.add(Calendar.MONTH, -1); //Add rule example : 01/01/2022 Calling add(Calendar.MONTH, -1) sets the calendar to 01/12/2021
-		Ticket ticket;
+		Ticket ticketFor;
 		for(int i=1; i<=times; i++) { //loops = times
-			ticket = new Ticket(); //Declare and initialize a new pointer (reference value to object)
-			ticket.setParkingSpot(parkingSpot);
-			ticket.setVehicleRegNumber(regNum);
-			ticket.setPrice(0);
-			ticket.setInTime(inTimeCal.getTime());
-			ticket.setOutTime(outTimeCal.getTime());
-			tickets.add(ticket); //The pointer (reference value to object) is added in the List
-			ticket = null; //Nullify pointer to avoid usage in the next loop 
+			ticketFor = new Ticket(); //Declare and initialize a new pointer (reference value to object)
+			ticketFor.setParkingSpot(parkingSpot);
+			ticketFor.setVehicleRegNumber(regNum);
+			ticketFor.setPrice(1.50);
+			ticketFor.setInTime(inTimeCal.getTime());
+			ticketFor.setOutTime(outTimeCal.getTime());
+			tickets.add(ticketFor); //The pointer (reference value to object) is added in the List
+			ticketFor = null; //Nullify pointer to avoid usage in the next loop 
 			inTimeCal.roll(Calendar.DATE, 2); //add 2 days so 11*2 = 22 days
 			outTimeCal.roll(Calendar.DATE, 2); //Roll rule : Larger fields (here MONTH) are unchanged after the call.
 		}
+		tickets.add(ticket); //Remember : t.getOutTime()=null
 		
 		Connection con = null;
         try {
@@ -114,7 +124,7 @@ public class TicketDAOSIT {
 		            psT.setString(2, t.getVehicleRegNumber());
 		            psT.setDouble(3, t.getPrice());
 		            psT.setTimestamp(4, new Timestamp(t.getInTime().getTime()));
-		            psT.setTimestamp(5, new Timestamp(t.getInTime().getTime()));
+		            psT.setTimestamp(5, (t.getOutTime() == null)?null: (new Timestamp(t.getOutTime().getTime())));
 		            psT.execute();
             	} catch (Exception ex){
             		ex.printStackTrace();
@@ -130,9 +140,9 @@ public class TicketDAOSIT {
         tickets.clear(); // Clear the list
         
         //WHEN
-        Boolean isRecurent = ticketDAO.isRecurrentUserTicket();
-        
+        Boolean isRecurent = ticketDAO.isRecurringUserTicket(ticket);
+
         //THEN
-        assertThat(isRecurent).isEqualTo(Boolean.valueOf(isRecurrentS));
+        assertThat(isRecurent).isEqualTo(Boolean.valueOf(isRecurrentS));        
     }
 }

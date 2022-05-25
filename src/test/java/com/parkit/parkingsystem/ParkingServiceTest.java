@@ -791,4 +791,116 @@ public class ParkingServiceTest {
 	        }
 		}
 	}
+	
+	 @ParameterizedTest(name ="Exiting Vehicle for recurring user = {0} so discount is {1}")
+	 @CsvSource({"true,5", "false,0" , "null,0"})
+ 	 @Tag("ExitingVehicleForRecurringUser")
+     @DisplayName("Exiting vehicle for a recurring user or not")
+     public void processExitingVehicleTestForRecurringUser(String isRecurrentS, int percent){
+     	//GIVEN
+     	int inputReaderUtilReadRegNumTimes = 0;
+     	int ticketDAOGetTimes = 0;
+     	int fareCalculatorServiceTimes = 0;
+     	int ticketDAOisRecurringUserTimes = 0;
+     	int fareCalculatorServiceRecurringUserTimes = 0;
+     	int ticketDAOUpdateTimes = 0;
+     	int parkingSpotDAOUpdateTimes = 0;
+     	
+		try {
+			when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM"); //throws Exception
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+    	inputReaderUtilReadRegNumTimes++; //=1
+    	
+		Date expectedInTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
+    	Ticket ticketGiven = new Ticket();
+ 		ticketGiven.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
+        ticketGiven.setVehicleRegNumber("REGNUM");
+        ticketGiven.setPrice(0);
+        ticketGiven.setInTime(expectedInTime);
+        ticketGiven.setOutTime(null);
+        when(ticketDAO.getTicket(any(String.class))).thenReturn(ticketGiven);
+        ticketDAOGetTimes++; //= 1;
+        //stringCaptor picked up "REGNUM"
+         
+        doAnswer(invocation -> {
+         	Ticket ticket = invocation.getArgument(0, Ticket.class);
+         	ticket.setPrice( BigDecimal.valueOf( ( (ticket.getOutTime().getTime() - ticket.getInTime().getTime() ) / (1000*3600d) ) * Fare.CAR_RATE_PER_HOUR)
+         			.setScale(2, RoundingMode.HALF_UP).doubleValue() ); // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up
+         	return null;})
+         	.when(fareCalculatorService).calculateFare(any(Ticket.class));
+        fareCalculatorServiceTimes++; //=1
+        //ticketCaptor picked up ticket with out time set by CUT and price set by doAnswer
+         
+        when(ticketDAO.isRecurringUserTicket(any(Ticket.class))).thenReturn(Boolean.valueOf(isRecurrentS));
+        ticketDAOisRecurringUserTimes++; //=1
+        //ticketCaptor picked up same ticket from another method
+
+        doAnswer(invocation -> {
+        	Ticket ticket = invocation.getArgument(0, Ticket.class);
+        	ticket.setPrice(BigDecimal.valueOf(ticket.getPrice()*(1-5/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue());
+        	return null;})
+        	.when(fareCalculatorService).recurringUser(any(Ticket.class));
+        if (isRecurrentS == "true") {
+        	fareCalculatorServiceRecurringUserTimes++;
+        } //The method recurringUser is only called if ticketDAO.isRecurringUserTicket has returned true
+         
+        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
+        ticketDAOUpdateTimes++; //= 1
+        //ticketCaptor picked up ticket from another method
+         
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        parkingSpotDAOUpdateTimes++; //=1
+        //parkingSpotCaptor picked up the ParkingSpot's object with available set to true
+         
+        //WHEN
+        parkingService.processExitingVehicle(); //calls isRecurringUser(ticket)
+         
+        //THEN
+        //Verify mocks are used
+	    try {
+			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	    verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
+	    verify(fareCalculatorService, times(fareCalculatorServiceTimes)).calculateFare(any(Ticket.class));
+	    verify(ticketDAO, times(ticketDAOisRecurringUserTimes)).isRecurringUserTicket(any(Ticket.class));
+	    verify(fareCalculatorService, times(fareCalculatorServiceRecurringUserTimes)).recurringUser(any(Ticket.class));
+	    verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(any(Ticket.class));
+	    verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
+
+	    //Asserts the arguments are good
+	    if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	       	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
+		    assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
+	    }
+	    if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+			Date expectedOutTime = new Date();
+	       	verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
+	       	assertThat(ticketCaptor.getValue())
+	       		.extracting(
+	       			ticket -> ticket.getParkingSpot().getId(),
+	       			ticket -> ticket.getParkingSpot().getParkingType(),
+	       			ticket -> ticket.getParkingSpot().isAvailable(),
+	       			ticket -> ticket.getVehicleRegNumber(),
+	       			ticket -> ticket.getPrice())
+	       		.containsExactly(
+	       			1,
+	       			ParkingType.valueOf("CAR"),
+	       			true,
+	       			"REGNUM",
+	       			BigDecimal.valueOf(1.50*(1-percent/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue()); // results of duration x rate, double by default
+			        
+	        assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
+	        assertThat(ticketCaptor.getValue().getOutTime()).isCloseTo(expectedOutTime, 1000);
+	        /* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
+	         * if difference is equal to delta it's ok. */ 
+	        }
+	    if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	       	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
+	       	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
+	    }
+ 	} 
 }

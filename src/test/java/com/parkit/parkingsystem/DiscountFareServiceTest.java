@@ -55,7 +55,7 @@ public class DiscountFareServiceTest {
     }
     
     @Test
-    @DisplayName("Test 5% off for reccurent users")
+    @DisplayName("Test 5% off for reccurring users")
     public void fivePourcentsOffTestShouldReducePriceByFivePercent() {
     	//GIVEN
     	ticket.setPrice(1.50);
