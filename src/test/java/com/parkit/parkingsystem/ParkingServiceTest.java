@@ -837,14 +837,15 @@ public class ParkingServiceTest {
         ticketDAOisRecurringUserTimes++; //=1
         //ticketCaptor picked up same ticket from another method
 
-        doAnswer(invocation -> {
+        lenient().doAnswer(invocation -> {
         	Ticket ticket = invocation.getArgument(0, Ticket.class);
         	ticket.setPrice(BigDecimal.valueOf(ticket.getPrice()*(1-5/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue());
         	return null;})
         	.when(fareCalculatorService).recurringUser(any(Ticket.class));
-        if (isRecurrentS == "true") {
+        if (isRecurrentS.equals("true")) {
         	fareCalculatorServiceRecurringUserTimes++;
-        } //The method recurringUser is only called if ticketDAO.isRecurringUserTicket has returned true
+        } /* The method recurringUser is only called if ticketDAO.isRecurringUserTicket has returned true
+           * In case false retruned, it needs lenient() because not used. */
          
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
         ticketDAOUpdateTimes++; //= 1

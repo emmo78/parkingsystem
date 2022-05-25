@@ -1,6 +1,7 @@
 package com.parkit.parkingsystem.service;
 
 import java.util.Date;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -169,15 +170,17 @@ public class ParkingService {
      * Processing exiting vehicle : asks for vehicle's registered number, uses DAO to query the ticket, set out time,
      * calls FareCalculatorService to calculate fare, updates ticket using DAO, set parking spot available and updates it with DAO  
      */
-     public void processExitingVehicle() {
-        try{
+    public void processExitingVehicle() {
+    	try{
             String vehicleRegNumber = getVehichleRegNumber(); //Throws Exception if invalid input, Will be caught see catch
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber); //can return null 
             Date outTime = new Date();
             ticket.setOutTime(outTime); //if ticket = null throws a NullPointerException, Will be caught see catch
             fareCalculatorService.calculateFare(ticket); // Throws IllegalArgumentException, Will be caught see catch
             //ticket is a pointer to the object. Only object'll be modified
-            //TODO : isRecurringUser(ticket);
+            if(isRecurringUser(ticket)) {
+            	fareCalculatorService.recurringUser(ticket);
+            }
             if(ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true); //setup after ticket's update
@@ -195,7 +198,22 @@ public class ParkingService {
         	logger.error("Unable to process exiting vehicle",e);
         }
     }
-     /**
+    
+    /**
+     * Test if user is a recurring one (parks more 10 times last month) 
+     * @param ticket
+     * @return : boolean
+     */
+    private boolean isRecurringUser(Ticket ticket) {
+    	try{
+    		return Optional.ofNullable(ticketDAO.isRecurringUserTicket(ticket)).orElseThrow(NullPointerException::new);
+    	} catch (NullPointerException e) {
+    		viewer.println("Unable to process loyalty. Error occurred");
+    		return false;
+    	}
+	}
+
+	/**
       * To Inject Mock
       * @param fareCalculatorService : mock
       */

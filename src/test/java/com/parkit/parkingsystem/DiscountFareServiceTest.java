@@ -18,22 +18,38 @@ import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.DiscountFareService;
 
+/**
+ * Tests DiscountFareService
+ * Declares class under test and a model attribute 
+ * @author Olivier MOREL
+ *
+ */
 public class DiscountFareServiceTest {
 	private DiscountFareService discountFareService; //Class Under Test
 	private Ticket ticket; //Model = only data so don't mock
 	
+	/**
+	 * Before each test initialize attributes
+	 */
 	@BeforeEach
     private void setUpPerTest() {
 		discountFareService = new DiscountFareService();
     	ticket = new Ticket();
     }
 	
+	/**
+	 * After each test nullify attributes
+	 */
     @AfterEach
     private void undefPerTest() {
 		discountFareService = null;
     	ticket = null;
     }
     
+    /**
+     * Nominal tests for 30 minutes or less
+     * @param min : minutes parked
+     */
     @ParameterizedTest(name = "{0} minute in park should cost 0.00")
     @ValueSource(ints = {30, 20, 10})
     @DisplayName("Nominal cases")
@@ -54,6 +70,9 @@ public class DiscountFareServiceTest {
         assertThat(ticket.getPrice()).isEqualTo(0);
     }
     
+    /**
+     * Test  five percent discount on ticket price
+     */
     @Test
     @DisplayName("Test 5% off for reccurring users")
     public void fivePourcentsOffTestShouldReducePriceByFivePercent() {

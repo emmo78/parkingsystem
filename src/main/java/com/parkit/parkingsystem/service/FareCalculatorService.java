@@ -56,8 +56,7 @@ public class FareCalculatorService {
     }
 
 	public void recurringUser(Ticket ticket) {
-		// TODO Auto-generated method stub
-		
+		discountFareService.fivePourcentsOff(ticket);
 	}
 
 }
