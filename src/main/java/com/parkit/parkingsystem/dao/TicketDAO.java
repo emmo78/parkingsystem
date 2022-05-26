@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -118,4 +120,46 @@ public class TicketDAO {
             dataBaseConfig.closeConnection(con); //The finally block will be executed even after a return statement in a method.
         }
     }
+
+	/**
+	 * How many times user get parked last month
+	 * @param ticket : the pointer to object
+	 * @return Boolean : true if user parked at least 11 times last month 
+	 */
+    public Boolean isRecurringUserTicket(Ticket ticket) {
+        Connection con = null;
+        int times = 0;
+        try {
+            con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
+            PreparedStatement ps = con.prepareStatement(DBConstants.GET_TIMES); // LAST_MONTH_BEGIN, LAST_MONT_END, VEHICLE_REG_NUMBER
+            Calendar lastMonthBegin = new GregorianCalendar();
+            lastMonthBegin.setTime(ticket.getInTime());
+            lastMonthBegin.set(Calendar.DATE, 1); //set date at the begin of month
+            lastMonthBegin.add(Calendar.MONTH, -1); //Add rule example : 01/01/2022 Calling add(Calendar.MONTH, -1) sets the calendar to 01/12/2021
+            Calendar lastMonthEnd = (GregorianCalendar)lastMonthBegin.clone();
+            lastMonthBegin.set(Calendar.HOUR_OF_DAY, 0);
+            lastMonthBegin.set(Calendar.MINUTE, 0);
+            lastMonthBegin.set(Calendar.SECOND, 0);
+            lastMonthEnd.set(Calendar.DATE, lastMonthEnd.getActualMaximum(Calendar.DATE));//Go to the last day of Month 
+            lastMonthEnd.set(Calendar.HOUR_OF_DAY, 23);
+            lastMonthEnd.set(Calendar.MINUTE, 59);
+            lastMonthEnd.set(Calendar.SECOND, 59);
+            
+            ps.setTimestamp(1, new Timestamp(lastMonthBegin.getTimeInMillis()));
+            ps.setTimestamp(2, new Timestamp(lastMonthEnd.getTimeInMillis()));
+            ps.setString(3, ticket.getVehicleRegNumber());
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+            times = rs.getInt(1);
+            }
+            dataBaseConfig.closeResultSet(rs);
+            dataBaseConfig.closePreparedStatement(ps);
+        }catch (Exception ex){
+            logger.error("Error getting user last month times",ex);
+            return null;
+        }finally {
+            dataBaseConfig.closeConnection(con);
+        }
+        return times>10;
+	}
 }

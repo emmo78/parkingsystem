@@ -189,10 +189,10 @@ public class ParkingDataBaseIT {
     	tResults.add(new TestResult(2, "CAR", true, 2, "CAR1", 1.50, new Date(expectedInTime.getTime()-82800000), new Date(expectedOutTime.getTime()-82800000)));
     	//82 800 000 = 23*60*60*1000 : CAR1 in park 24 hours ago on spot 2, exited 23 hours ago
     	
-    	tResults.add(new TestResult(1, "CAR", false, 1, "CAR1", 0d, expectedInTime, null));
+    	tResults.add(new TestResult(1, "CAR", false, 1, "CAR1", 0d, expectedInTime, null)); //Remember outTime = null
     	// CAR1 in park 1 hour ago on spot 1
 
-    	tResults.add(new TestResult(2, "CAR", false, 2, "CAR2", 0d, expectedInTime, null));
+    	tResults.add(new TestResult(2, "CAR", false, 2, "CAR2", 0d, expectedInTime, null)); //Remember outTime = null
     	// CAR2 just after CAR1 in park 1 hour ago on spot 2
     	    	
         Connection con = null;

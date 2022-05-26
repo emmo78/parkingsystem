@@ -14,8 +14,9 @@ public class DBConstants {
     public static final String UPDATE_TICKET = "update ticket set PRICE=?, OUT_TIME=? where ID=?";
     public static final String GET_TICKET = "select t.PARKING_NUMBER, t.ID, t.PRICE, t.IN_TIME, t.OUT_TIME,p.TYPE from ticket t,parking p "
     		+ "where p.parking_number = t.parking_number and t.OUT_TIME IS NULL and t.VEHICLE_REG_NUMBER=? order by t.IN_TIME desc limit 1";
-    		
     /*public static final String GET_TICKET = "select t.PARKING_NUMBER, t.ID, t.PRICE, t.IN_TIME, t.OUT_TIME, p.TYPE from ticket t,parking p "
     		+ "where p.parking_number = t.parking_number and t.VEHICLE_REG_NUMBER=? order by t.IN_TIME  limit 1";
-	*/		
+	*/
+    public static final String GET_TIMES = "select count(t.out_time) as 'times' from ticket t "
+    		+ "where (t.out_time between ? and ?) and t.VEHICLE_REG_NUMBER=?";
 }
