@@ -892,7 +892,7 @@ public class ParkingServiceTest {
 	       			ParkingType.valueOf("CAR"),
 	       			true,
 	       			"REGNUM",
-	       			BigDecimal.valueOf(1.50*(1-percent/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue()); // results of duration x rate, double by default
+	       			BigDecimal.valueOf(1.50*(1-percent/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue());
 			        
 	        assertThat(ticketCaptor.getValue().getInTime()).isCloseTo(expectedInTime, 1000);
 	        assertThat(ticketCaptor.getValue().getOutTime()).isCloseTo(expectedOutTime, 1000);

@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -120,7 +122,28 @@ public class TicketDAO {
     }
 
 	public Boolean isRecurringUserTicket(Ticket ticket) {
-		// TODO Auto-generated method stub
-		return null;
+        Connection con = null;
+        int times = 0;
+        try {
+            con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
+            PreparedStatement ps = con.prepareStatement(DBConstants.GET_TIMES); //MONTH, VEHICLE_REG_NUMBER
+            Calendar forMonth = new GregorianCalendar();
+            forMonth.setTime(ticket.getInTime());
+            forMonth.add(Calendar.MONTH, -1);
+            ps.setInt(1, forMonth.get(Calendar.MONTH)+1);
+            ps.setString(2, ticket.getVehicleRegNumber());
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+            times = rs.getInt(1);
+            }
+            dataBaseConfig.closeResultSet(rs);
+            dataBaseConfig.closePreparedStatement(ps);
+        }catch (Exception ex){
+            logger.error("Error getting ticket",ex);
+            return null;
+        }finally {
+            dataBaseConfig.closeConnection(con);
+        }
+        return times>10;
 	}
 }

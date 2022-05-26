@@ -73,13 +73,6 @@ public class TicketDAOSIT {
     	ticket = null;
      }
     
-    /**
-     * Tests if method calculateFare gives corrects results
-     * with nominal cases
-     * @param min : how long the vehicle parks (minutes)
-     * @param coefFare : = min/60 because rate/h
-     * @param type : vehicle's type
-     */
     @ParameterizedTest(name = "{0} times for user FID in park last month should be {1} for recurrent user {2}")
     @CsvSource({"11,true,FID","10,false,FID","11,false,DIF"})
     @DisplayName("Nominal cases")
@@ -90,7 +83,7 @@ public class TicketDAOSIT {
 		inTimeCal.setTimeInMillis(inTimeCal.getTimeInMillis()-3600*1000);
 		outTimeCal = GregorianCalendar.getInstance();
 		ticket.setParkingSpot(parkingSpot);
-		ticket.setVehicleRegNumber(regNum);
+		ticket.setVehicleRegNumber(regNum); //current user
 		ticket.setPrice(0);
 		ticket.setInTime(inTimeCal.getTime());
 		ticket.setOutTime(null);
@@ -103,7 +96,7 @@ public class TicketDAOSIT {
 		for(int i=1; i<=times; i++) { //loops = times
 			ticketFor = new Ticket(); //Declare and initialize a new pointer (reference value to object)
 			ticketFor.setParkingSpot(parkingSpot);
-			ticketFor.setVehicleRegNumber(regNum);
+			ticketFor.setVehicleRegNumber("FID"); //recurring user
 			ticketFor.setPrice(1.50);
 			ticketFor.setInTime(inTimeCal.getTime());
 			ticketFor.setOutTime(outTimeCal.getTime());
