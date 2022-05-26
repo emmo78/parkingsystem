@@ -119,14 +119,14 @@ public class TicketDAOSIT {
 		            psT.setTimestamp(4, new Timestamp(t.getInTime().getTime()));
 		            psT.setTimestamp(5, (t.getOutTime() == null)?null: (new Timestamp(t.getOutTime().getTime())));
 		            psT.execute();
-            	} catch (Exception ex){
+            	} catch(Exception ex) {
             		ex.printStackTrace();
             	}
             });
             dataBaseTestConfig.closePreparedStatement(psT);
-        } catch (Exception ex){
+        } catch(Exception ex){
         	ex.printStackTrace();
-        }finally {
+        } finally {
             dataBaseTestConfig.closeConnection(con);
         }
         con = null;

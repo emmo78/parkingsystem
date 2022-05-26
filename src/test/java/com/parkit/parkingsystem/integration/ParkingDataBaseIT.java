@@ -83,7 +83,7 @@ public class ParkingDataBaseIT {
         // on first call uses first thenReturn, on second uses second ... on seventh uses seventh, on eighth uses first ...
         try {
 			when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("CAR1").thenReturn("CAR2").thenReturn("CAR3").thenReturn("BIKE4").thenReturn("BIKE5").thenReturn("CAR6").thenReturn("BIKE7");
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
         dataBasePrepareService.clearDataBaseEntries(); // "update parking set available = true" , "truncate table ticket"
@@ -115,7 +115,7 @@ public class ParkingDataBaseIT {
             		+ "t.PARKING_NUMBER, t.VEHICLE_REG_NUMBER, t.PRICE, t.IN_TIME, t.OUT_TIME "
             		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER");
             ResultSet rs = ps.executeQuery();
-            while(rs.next()){
+            while (rs.next()) {
                 TestResult tResult = new TestResult(); //Declare and initialize a new pointer (reference value to object)
                 tResult.parkingNumber = rs.getInt(1);
             	tResult.type = rs.getString(2);
@@ -130,16 +130,16 @@ public class ParkingDataBaseIT {
             }
             dataBaseTestConfig.closeResultSet(rs);
             dataBaseTestConfig.closePreparedStatement(ps);
-        }catch (Exception ex){
+        } catch(Exception ex) {
         	ex.printStackTrace();
-        }finally {
+        } finally {
             dataBaseTestConfig.closeConnection(con);
         }
  
         verify(inputReaderUtil, times(7)).readSelection(); // 7 times used
         try {
 			verify(inputReaderUtil, times(5)).readVehicleRegistrationNumber(); // but only 5 times used because the 2 extra vehicles shouldn't be treated
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
         assertThat(tResults.size()).isEqualTo(5);
@@ -213,15 +213,15 @@ public class ParkingDataBaseIT {
 		                psP.setInt(2, tR.parkingNumber);
 		                psP.executeUpdate();
 		            }
-            	} catch (Exception ex){
+            	} catch(Exception ex) {
             		ex.printStackTrace();
             	}
             });
             dataBaseTestConfig.closePreparedStatement(psT);
             dataBaseTestConfig.closePreparedStatement(psP);
-        } catch (Exception ex){
+        } catch(Exception ex) {
         	ex.printStackTrace();
-        }finally {
+        } finally {
             dataBaseTestConfig.closeConnection(con);
         }  	
         tResults.clear(); // Clear the list
@@ -240,7 +240,7 @@ public class ParkingDataBaseIT {
             		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER "
             		+ "order by t.ID desc limit 2");
             ResultSet rs = ps.executeQuery();
-            while(rs.next()){
+            while (rs.next()) {
                 TestResult tResult = new TestResult(); //Declare and initialize a new pointer (reference value to object)
                 tResult.parkingNumber = rs.getInt(1);
             	tResult.type = rs.getString(2);
@@ -255,15 +255,15 @@ public class ParkingDataBaseIT {
             }
             dataBaseTestConfig.closeResultSet(rs);
             dataBaseTestConfig.closePreparedStatement(ps);
-        }catch (Exception ex){
+        } catch(Exception ex) {
         	ex.printStackTrace();
-        }finally {
+        } finally {
             dataBaseTestConfig.closeConnection(con);
         }
  
         try {
 			verify(inputReaderUtil, times(2)).readVehicleRegistrationNumber(); // 2 times used
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
         assertThat(tResults.size()).isEqualTo(2);
@@ -292,6 +292,7 @@ public class ParkingDataBaseIT {
      *
      */
     private class TestResult {
+    	
 		int parkingNumber; //Primary Key
         String type;
         boolean available;
@@ -325,4 +326,4 @@ public class ParkingDataBaseIT {
 			this.outTime = outTime;
 		}
     }
- }
+}

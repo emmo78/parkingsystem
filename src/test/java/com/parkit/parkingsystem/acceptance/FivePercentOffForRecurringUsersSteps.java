@@ -85,7 +85,7 @@ public class FivePercentOffForRecurringUsersSteps {
 		parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
 		try {
 			when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNum);
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
     	List<TestResult> tResults = new ArrayList<>(); //TestResult is a nested class with fields to set/collect ResulSet fields, see below
@@ -124,15 +124,15 @@ public class FivePercentOffForRecurringUsersSteps {
 		                psP.setInt(2, tR.parkingNumber);
 		                psP.executeUpdate();
 		            }
-            	} catch (Exception ex){
+            	} catch(Exception ex) {
             		ex.printStackTrace();
             	}
             });
             dataBaseTestConfig.closePreparedStatement(psT);
             dataBaseTestConfig.closePreparedStatement(psP);
-        } catch (Exception ex){
+        } catch(Exception ex) {
         	ex.printStackTrace();
-        }finally {
+        } finally {
             dataBaseTestConfig.closeConnection(con);
         }
         con = null;
@@ -184,16 +184,16 @@ public class FivePercentOffForRecurringUsersSteps {
             }
             dataBaseTestConfig.closeResultSet(rs);
             dataBaseTestConfig.closePreparedStatement(ps);
-        }catch (Exception ex){
+        } catch(Exception ex) {
         	ex.printStackTrace();
-        }finally {
+        } finally {
             dataBaseTestConfig.closeConnection(con);
         }
         con = null;
  
         try {
 			verify(inputReaderUtil, times(1)).readVehicleRegistrationNumber(); // 1 time used
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
         assertThat(tResult)
@@ -240,6 +240,7 @@ public class FivePercentOffForRecurringUsersSteps {
      *
      */
     class TestResult {
+    	
 		int parkingNumber; //Primary Key
         String type;
         boolean available;

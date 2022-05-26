@@ -13,7 +13,7 @@ public class ParkingSpot {
     private boolean isAvailable;
 
     public ParkingSpot(int number, ParkingType parkingType, boolean isAvailable) {
-        this.number = number;
+    	this.number = number;
         this.parkingType = parkingType;
         this.isAvailable = isAvailable;
     }

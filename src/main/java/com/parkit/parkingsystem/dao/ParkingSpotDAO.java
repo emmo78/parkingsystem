@@ -37,7 +37,7 @@ public class ParkingSpotDAO {
      * @param parkingType : given vehicule's type
      * @return the index of the available parking spot
      */
-    public int getNextAvailableSlot(ParkingType parkingType){
+    public int getNextAvailableSlot(ParkingType parkingType) {
         Connection con = null;
         int result=-1;
         try {
@@ -50,13 +50,13 @@ public class ParkingSpotDAO {
             }
             dataBaseConfig.closeResultSet(rs);
             dataBaseConfig.closePreparedStatement(ps);
-        }catch(ClassNotFoundException e) {
+        } catch(ClassNotFoundException e) {
         	logger.error("Error fetching next available slot",e);
-        }catch (SQLException e) {
+        } catch(SQLException e) {
         	logger.error("Error fetching next available slot",e);
-        }catch (Exception ex){
+        } catch(Exception ex) {
             logger.error("Error fetching next available slot",ex);
-        }finally {
+        } finally {
             dataBaseConfig.closeConnection(con);
         }
         return result;
@@ -78,10 +78,10 @@ public class ParkingSpotDAO {
             int updateRowCount = ps.executeUpdate();
             dataBaseConfig.closePreparedStatement(ps);
             return (updateRowCount == 1);
-        }catch (Exception ex){
+        } catch(Exception ex) {
             logger.error("Error updating parking info",ex);
             return false;
-        }finally {
+        } finally {
             dataBaseConfig.closeConnection(con); //The finally block will be executed even after a return statement in a method.
         }
     }

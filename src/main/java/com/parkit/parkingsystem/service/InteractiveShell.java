@@ -24,8 +24,8 @@ public final class InteractiveShell {
 	private static final Logger logger = LogManager.getLogger("InteractiveShell");
 	private final Viewer viewer = new ViewerImpl(); // Viewer instance
 
-	private InteractiveShell() { //Constructor is private to exercise access control
-	} 
+	private InteractiveShell() {
+	} //Constructor is private to exercise access control
 
 	/**
 	 * Getter Static to get it without instantiating it
@@ -52,25 +52,26 @@ public final class InteractiveShell {
 		TicketDAO ticketDAO = new TicketDAO(); //for CRUD : Create, Read, Update and Delete on table ticket
 		ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
 
-		while (continueApp) {
+		while(continueApp) {
 			loadMenu();
 			int option = inputReaderUtil.readSelection();
-			switch (option) {
-			case 1: {
-				parkingService.processIncomingVehicle();
-				break;
-			}
-			case 2: {
-				parkingService.processExitingVehicle();
-				break;
-			}
-			case 3: {
-				viewer.println("Exiting from the system!");
-				continueApp = false;
-				break;
-			}
-			default:
-				viewer.println("Unsupported option. Please enter a number corresponding to the provided menu");
+			switch(option) {
+				case 1: {
+					parkingService.processIncomingVehicle();
+					break;
+				}
+				case 2: {
+					parkingService.processExitingVehicle();
+					break;
+				}
+				case 3: {
+					viewer.println("Exiting from the system!");
+					continueApp = false;
+					break;
+				}
+				default: {
+					viewer.println("Unsupported option. Please enter a number corresponding to the provided menu");
+				}
 			}
 		}
 	}

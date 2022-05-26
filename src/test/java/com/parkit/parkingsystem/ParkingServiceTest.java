@@ -100,6 +100,7 @@ public class ParkingServiceTest {
     @Tag("NominalCases")
     @DisplayName("Nominal cases")
     class NominalCases {
+    	
     	/**
 	     * Tests if method processIncomingVehicle calls mocks and uses correct arguments     
 	     * with nominal cases
@@ -128,7 +129,7 @@ public class ParkingServiceTest {
 	    	
 			try {
 				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber); //throws Exception
-			} catch (Exception e1) {
+			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
@@ -150,7 +151,7 @@ public class ParkingServiceTest {
 	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
 	        try {
 				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws Exception
-			} catch (Exception e) {
+			} catch(Exception e) {
 				e.printStackTrace();
 			}
 	        verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
@@ -164,8 +165,8 @@ public class ParkingServiceTest {
 	
 	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 	       	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
-	        	assertThat(parkingSpotCaptor.getValue()).
-	        		usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.valueOf(type), false));
+	        	assertThat(parkingSpotCaptor.getValue())
+	        		.usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.valueOf(type), false));
 	        }
 	        
 	        if(ticketDAOSaveTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
@@ -209,7 +210,7 @@ public class ParkingServiceTest {
         	
 			try {
 				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM"); //throws Exception
-			} catch (Exception e1) {
+			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
@@ -249,7 +250,7 @@ public class ParkingServiceTest {
             //Verify mocks are used
 	        try {
 				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
-			} catch (Exception e) {
+			} catch(Exception e) {
 				e.printStackTrace();
 			}
 	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
@@ -301,6 +302,7 @@ public class ParkingServiceTest {
     @Tag("CornerCasesIncomingVehicle")
     @DisplayName("Corner cases incoming vehicle")
     class cornerCasesIncomingVehicle {
+    	
         /**
          * For an unknown vehicle's type, method processIncomingVehicle should only use
          * one time InputReaderUtil and nothing else
@@ -308,7 +310,8 @@ public class ParkingServiceTest {
     	@Test
         @DisplayName("Unknown vehicle's type")
         public void processIncomingVehicleForUnknownTypeShouldUseOnlyOneTimeInputReaderUtil(){
-        	//GIVEN
+  
+    		//GIVEN
     		int inputReaderUtilReadSelectTimes = 0;
         	int parkingSpotDAOGetTimes = 0;
         	int inputReaderUtilReadRegNumTimes = 0;
@@ -329,7 +332,7 @@ public class ParkingServiceTest {
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
     			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws Exception
-    		} catch (Exception e) {
+    		} catch(Exception e) {
     			e.printStackTrace();
     		}
             verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
@@ -369,7 +372,7 @@ public class ParkingServiceTest {
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
     			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
-    		} catch (Exception e) {
+    		} catch(Exception e) {
     			e.printStackTrace();
     		}
             verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
@@ -405,7 +408,7 @@ public class ParkingServiceTest {
         	
         	try {
 				when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new IllegalArgumentException("Invalid input provided"));
-			} catch (Exception e1) {
+			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
         	inputReaderUtilReadRegNumTimes++; //=1
@@ -421,7 +424,7 @@ public class ParkingServiceTest {
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
     			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
-    		} catch (Exception e) {
+    		} catch(Exception e) {
     			e.printStackTrace();
     		}
             verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
@@ -440,10 +443,10 @@ public class ParkingServiceTest {
 	 * @author Olivier MOREL
 	 *
 	 */
-	 @Nested
-	 @Tag("CornerCasesExitingVehicle")
-	 @DisplayName("Corner cases exiting vehicle")
-	 class cornerCasesExitingVehicle {
+	@Nested
+	@Tag("CornerCasesExitingVehicle")
+	@DisplayName("Corner cases exiting vehicle")
+	class cornerCasesExitingVehicle {
     	
 		/**
 	    * For invalid vehicle's registration number, method processExitingVehicle should only use
@@ -461,7 +464,7 @@ public class ParkingServiceTest {
 	    	
 	    	try {
 				when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new IllegalArgumentException("Invalid input provided"));
-			} catch (Exception e1) {
+			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
@@ -475,7 +478,7 @@ public class ParkingServiceTest {
 	        //Verify mocks are used or never
 	        try {
 				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
-			} catch (Exception e) {
+			} catch(Exception e) {
 				e.printStackTrace();
 			}
 	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
@@ -501,7 +504,7 @@ public class ParkingServiceTest {
 	    	
 			try {
 				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
-			} catch (Exception e1) {
+			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
@@ -520,7 +523,7 @@ public class ParkingServiceTest {
 	        //Verify mocks are used or never
 	        try {
 				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
-			} catch (Exception e) {
+			} catch(Exception e) {
 				e.printStackTrace();
 			}
 	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
@@ -553,7 +556,7 @@ public class ParkingServiceTest {
 	    	
 			try {
 				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
-			} catch (Exception e1) {
+			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
@@ -581,7 +584,7 @@ public class ParkingServiceTest {
 	        //Verify mocks are used or never
 	        try {
 				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
-			} catch (Exception e) {
+			} catch(Exception e) {
 				e.printStackTrace();
 			}
 	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
@@ -613,7 +616,7 @@ public class ParkingServiceTest {
 	    	
 			try {
 				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
-			} catch (Exception e1) {
+			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
@@ -651,7 +654,7 @@ public class ParkingServiceTest {
 	        //Verify mocks are used or never
 	        try {
 				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
-			} catch (Exception e) {
+			} catch(Exception e) {
 				e.printStackTrace();
 			}
 	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
@@ -705,7 +708,7 @@ public class ParkingServiceTest {
 	    	
 			try {
 				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
-			} catch (Exception e1) {
+			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
@@ -745,7 +748,7 @@ public class ParkingServiceTest {
 	        //Verify mocks are used or never
 	        try {
 				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();
-			} catch (Exception e) {
+			} catch(Exception e) {
 				e.printStackTrace();
 			}
 	        verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));
@@ -797,7 +800,8 @@ public class ParkingServiceTest {
  	 @Tag("ExitingVehicleForRecurringUser")
      @DisplayName("Exiting vehicle for a recurring user or not")
      public void processExitingVehicleTestForRecurringUser(String isRecurrentS, int percent){
-     	//GIVEN
+ 
+		//GIVEN
      	int inputReaderUtilReadRegNumTimes = 0;
      	int ticketDAOGetTimes = 0;
      	int fareCalculatorServiceTimes = 0;
@@ -808,7 +812,7 @@ public class ParkingServiceTest {
      	
 		try {
 			when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM"); //throws Exception
-		} catch (Exception e1) {
+		} catch(Exception e1) {
 			e1.printStackTrace();
 		}
     	inputReaderUtilReadRegNumTimes++; //=1
@@ -842,7 +846,7 @@ public class ParkingServiceTest {
         	ticket.setPrice(BigDecimal.valueOf(ticket.getPrice()*(1-5/100d)).setScale(2, RoundingMode.HALF_UP).doubleValue());
         	return null;})
         	.when(fareCalculatorService).recurringUser(any(Ticket.class));
-        if (isRecurrentS.equals("true")) {
+        if(isRecurrentS.equals("true")) {
         	fareCalculatorServiceRecurringUserTimes++;
         } /* The method recurringUser is only called if ticketDAO.isRecurringUserTicket has returned true
            * In case false retruned, it needs lenient() because not used. */
@@ -862,7 +866,7 @@ public class ParkingServiceTest {
         //Verify mocks are used
 	    try {
 			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	    verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(any(String.class));

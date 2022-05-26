@@ -37,8 +37,8 @@ public class ParkingService {
      * @param ticketDAO for CRUD : Create, Read, Update and Delete on table ticket
      * @param viewer get initialized instance of ViewerImpl
      */
-    public ParkingService(InputReaderUtil inputReaderUtil, ParkingSpotDAO parkingSpotDAO, TicketDAO ticketDAO, Viewer viewer){
-        this.inputReaderUtil = inputReaderUtil;
+    public ParkingService(InputReaderUtil inputReaderUtil, ParkingSpotDAO parkingSpotDAO, TicketDAO ticketDAO, Viewer viewer) {
+    	this.inputReaderUtil = inputReaderUtil;
         this.parkingSpotDAO = parkingSpotDAO;
         this.ticketDAO = ticketDAO;
         this.viewer = viewer;
@@ -50,9 +50,9 @@ public class ParkingService {
      * and persists it into SGBD
      */
     public void processIncomingVehicle() {
-        try{
+        try {
             ParkingSpot parkingSpot = getNextParkingNumberIfAvailable(); //Declare and try to get a available ParkingSpot model
-            if(parkingSpot !=null && parkingSpot.getId() > 0){
+            if(parkingSpot !=null && parkingSpot.getId() > 0) {
                 String vehicleRegNumber = getVehichleRegNumber(); //Throws Exception if invalid input, will be caught see catch
                 parkingSpot.setAvailable(false);
                 parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark it's availability as false
@@ -95,7 +95,7 @@ public class ParkingService {
 				 *	If time zone information is not available, then zzz is empty - that is, it consists of no characters at all.
 				 *	yyyy is the year, as four decimal digits.*/
             }
-        }catch(Exception e){ //if invalid vehivule's registered number input. Warning message already shown on console in InputReader method
+        } catch(Exception e) { //if invalid vehivule's registered number input. Warning message already shown on console in InputReader method
             logger.error("Unable to process incoming vehicle",e);
         }
     }
@@ -104,21 +104,21 @@ public class ParkingService {
      * Tries to get an available parking space but before ask vehicule's type
      * @return an available model ParkingSpot
      */
-    private ParkingSpot getNextParkingNumberIfAvailable(){
+    private ParkingSpot getNextParkingNumberIfAvailable() {
         int parkingNumber=0;
         ParkingSpot parkingSpot = null;
-        try{
+        try {
             ParkingType parkingType = getVehichleType(); // Throws IllegalArgumentException Will be caught see catch
             parkingNumber = parkingSpotDAO.getNextAvailableSlot(parkingType);
-            if(parkingNumber > 0){
+            if(parkingNumber > 0) {
                 parkingSpot = new ParkingSpot(parkingNumber,parkingType, true);
-            }else{
+            } else {
                 throw new Exception("Error fetching parking number from DB. Parking slots might be full"); //Will be caught see catch
             }
-        }catch(IllegalArgumentException ie){
+        } catch(IllegalArgumentException ie) {
         	viewer.println("Incorrect input provided : provide 1 or 2");
         	logger.error("Error parsing user input for type of vehicle", ie);
-        }catch(Exception e){
+        } catch(Exception e) {
         	viewer.println("Parking slots might be full");
         	logger.error("Error fetching next available parking slot", e);
         }
@@ -135,7 +135,7 @@ public class ParkingService {
     	viewer.println("1 CAR");
     	viewer.println("2 BIKE");
         int input = inputReaderUtil.readSelection(); //return -1 if an exception occurred
-        switch(input){
+        switch(input) {
             case 1: {
                 return ParkingType.CAR; //no break because return
             }
@@ -171,7 +171,7 @@ public class ParkingService {
      * calls FareCalculatorService to calculate fare, updates ticket using DAO, set parking spot available and updates it with DAO  
      */
     public void processExitingVehicle() {
-    	try{
+    	try {
             String vehicleRegNumber = getVehichleRegNumber(); //Throws Exception if invalid input, Will be caught see catch
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber); //can return null 
             Date outTime = new Date();
@@ -190,10 +190,10 @@ public class ParkingService {
  
                 viewer.println("Please pay the parking fare:" + ticket.getPrice());
                 viewer.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
-            }else{
+            } else {
             	viewer.println("Unable to update ticket information. Error occurred");
             }
-        }catch(Exception e){
+        } catch(Exception e) {
         	viewer.println("Unable to process exiting vehicle");
         	logger.error("Unable to process exiting vehicle",e);
         }
@@ -205,10 +205,10 @@ public class ParkingService {
      * @return : boolean
      */
     private boolean isRecurringUser(Ticket ticket) {
-    	try{
+    	try {
     		return Optional.ofNullable(ticketDAO.isRecurringUserTicket(ticket)).orElseThrow(() -> new NullPointerException());
     		//(NullPointerException::new) is same lambda notation
-    	} catch (NullPointerException e) {
+    	} catch(NullPointerException e) {
     		viewer.println("Unable to process loyalty. Error occurred");
     		return false;
     	}

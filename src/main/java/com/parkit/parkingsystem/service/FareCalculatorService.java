@@ -33,7 +33,7 @@ public class FareCalculatorService {
 
         double duration = (outHour - inHour) / (1000*3600d); // from milliseconds to decimal hours, d for double casting
         try {
-	        switch (ticket.getParkingSpot().getParkingType()){ //When null show up in switch statement, Java will throw NullPointerException
+	        switch(ticket.getParkingSpot().getParkingType()) { //When null show up in switch statement, Java will throw NullPointerException
 	            case CAR: {
 	                ticket.setPrice(BigDecimal.valueOf(duration * Fare.CAR_RATE_PER_HOUR).setScale(2, RoundingMode.HALF_UP).doubleValue());
 	                // Set price with 2 decimals rounded towards "nearest neighbor" unless both neighbors are equidistant, in which case round up

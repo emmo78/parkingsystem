@@ -125,6 +125,7 @@ public class FareCalculatorServiceTest {
     @Tag("CornerCases")
     @DisplayName("Corner cases")
     class cornerCases {
+    	
         /**
          * Calculate fare for a unknown vehicle's Type
          * should throw an illegal argument exception
