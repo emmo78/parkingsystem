@@ -55,8 +55,11 @@ public class FareCalculatorService {
         }
     }
 
+	/**
+	 * Fare for Recurring User call service method for five percent discount
+	 * @param ticket : pointeur to object, not modified only the object so no need to return
+	 */
 	public void recurringUser(Ticket ticket) {
 		discountFareService.fivePourcentsOff(ticket);
 	}
-
 }

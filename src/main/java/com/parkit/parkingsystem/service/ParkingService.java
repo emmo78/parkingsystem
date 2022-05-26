@@ -206,7 +206,8 @@ public class ParkingService {
      */
     private boolean isRecurringUser(Ticket ticket) {
     	try{
-    		return Optional.ofNullable(ticketDAO.isRecurringUserTicket(ticket)).orElseThrow(NullPointerException::new);
+    		return Optional.ofNullable(ticketDAO.isRecurringUserTicket(ticket)).orElseThrow(() -> new NullPointerException());
+    		//(NullPointerException::new) is same lambda notation
     	} catch (NullPointerException e) {
     		viewer.println("Unable to process loyalty. Error occurred");
     		return false;
