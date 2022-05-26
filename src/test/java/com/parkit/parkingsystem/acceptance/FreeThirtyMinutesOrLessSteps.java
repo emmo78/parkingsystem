@@ -82,7 +82,7 @@ public class FreeThirtyMinutesOrLessSteps {
 			e.printStackTrace();
 		}
     	expectedInTime = new Date(System.currentTimeMillis() - (min*60 * 1000));
-    	TestResult tR = new TestResult(1, "CAR", false, 1, regNum, 0d, expectedInTime, null);
+    	TestResult tR = new TestResult(1, "CAR", false, 1, regNum, 0d, expectedInTime, null); //Remember outTime = null
     	// <regNum> in park <min> minutes ago on spot 1
         Connection con = null;
         try {

@@ -104,7 +104,7 @@ public class FivePercentOffForRecurringUsersSteps {
 			inTimeCal.roll(Calendar.DATE, 2); //add 2 days so 11*2 = 22 days
 			outTimeCal.roll(Calendar.DATE, 2); //Roll rule : Larger fields (here MONTH) are unchanged after the call.
 		}
-		tResults.add(new TestResult(1, "CAR", false, 1, regNum, 0d, expectedInTime, null));
+		tResults.add(new TestResult(1, "CAR", false, 1, regNum, 0d, expectedInTime, null)); //Remember outTime = null
 
 		Connection con = null;
         try {
