@@ -39,17 +39,17 @@ public class ParkingSpotDAO {
      */
     public int getNextAvailableSlot(ParkingType parkingType) {
         Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs =null;
         int result=-1;
         try {
             con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
-            PreparedStatement ps = con.prepareStatement(DBConstants.GET_NEXT_PARKING_SPOT);
+            ps = con.prepareStatement(DBConstants.GET_NEXT_PARKING_SPOT);
             ps.setString(1, parkingType.toString());
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             if(rs.next()){
                 result = rs.getInt(1);;
             }
-            dataBaseConfig.closeResultSet(rs);
-            dataBaseConfig.closePreparedStatement(ps);
         } catch(ClassNotFoundException e) {
         	logger.error("Error fetching next available slot",e);
         } catch(SQLException e) {
@@ -57,7 +57,9 @@ public class ParkingSpotDAO {
         } catch(Exception ex) {
             logger.error("Error fetching next available slot",ex);
         } finally {
-            dataBaseConfig.closeConnection(con);
+            if (rs != null) dataBaseConfig.closeResultSet(rs);
+            if (ps != null) dataBaseConfig.closePreparedStatement(ps);
+        	if (con != null) dataBaseConfig.closeConnection(con);
         }
         return result;
     }
@@ -70,9 +72,10 @@ public class ParkingSpotDAO {
     public boolean updateParking(ParkingSpot parkingSpot){
         //update the availability for that parking slot
         Connection con = null;
+        PreparedStatement ps = null;
         try {
             con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
-            PreparedStatement ps = con.prepareStatement(DBConstants.UPDATE_PARKING_SPOT);
+            ps = con.prepareStatement(DBConstants.UPDATE_PARKING_SPOT);
             ps.setBoolean(1, parkingSpot.isAvailable());
             ps.setInt(2, parkingSpot.getId());
             int updateRowCount = ps.executeUpdate();
@@ -81,8 +84,9 @@ public class ParkingSpotDAO {
         } catch(Exception ex) {
             logger.error("Error updating parking info",ex);
             return false;
-        } finally {
-            dataBaseConfig.closeConnection(con); //The finally block will be executed even after a return statement in a method.
+        } finally { //The finally block will be executed even after a return statement in a method.
+            if (ps != null) dataBaseConfig.closePreparedStatement(ps);
+        	if (con != null) dataBaseConfig.closeConnection(con); 
         }
     }
 

@@ -23,7 +23,7 @@ public class FareCalculatorService {
      * @param ticket : model
      * @throws IllegalArgumentException if type is unknown
      */
-	public void calculateFare(Ticket ticket) throws IllegalArgumentException{ // Throws optional because RuntimeException but better readability
+	public void calculateFare(Ticket ticket) throws IllegalArgumentException{ // Throw is optional because RuntimeException but better readability
         if( (ticket.getOutTime() == null) || (ticket.getOutTime().before(ticket.getInTime())) ){
             throw new IllegalArgumentException("Out time provided is incorrect:"+ticket.getOutTime().toString());
         }

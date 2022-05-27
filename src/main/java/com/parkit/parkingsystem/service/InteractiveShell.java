@@ -1,10 +1,15 @@
 package com.parkit.parkingsystem.service;
 
+import java.util.Properties;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.parkit.parkingsystem.dao.DBConfigIO;
+import com.parkit.parkingsystem.dao.LoadDBConfigFromFile;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
+import com.parkit.parkingsystem.dao.WriteDBConfigToFile;
 import com.parkit.parkingsystem.util.InputReaderUtil;
 import com.parkit.parkingsystem.view.Viewer;
 import com.parkit.parkingsystem.view.ViewerImpl;
@@ -65,7 +70,7 @@ public final class InteractiveShell {
 					break;
 				}
 				case 3: {
-					viewer.println("Exiting from the system!");
+					viewer.println("Exiting from the system !");
 					continueApp = false;
 					break;
 				}
@@ -83,4 +88,63 @@ public final class InteractiveShell {
 		viewer.println("3 Shutdown System");
 	}
 
+	public void loadDBConfigInterface() {
+
+		logger.info("DB Configuration initialized!!!");
+		viewer.println("DB Configuration");
+
+		boolean continueApp = true;
+		InputReaderUtil inputReaderUtil = new InputReaderUtil(); //to read keyboard input and give an expected result
+		Properties dbProperties;
+		DBConfigIO fileDBConfigIO;
+
+		while(continueApp) {
+			loadMenuDBConfig();
+			int option = inputReaderUtil.readSelection();
+			switch(option) {
+				case 1: {
+					fileDBConfigIO = new WriteDBConfigToFile();
+					dbProperties = new Properties();
+					
+					viewer.println("Enter root password");
+					dbProperties.setProperty("user", "root");
+					try {
+						dbProperties.setProperty("password", inputReaderUtil.readVehicleRegistrationNumber());
+					} catch(Exception e) {
+						logger.error(e); //IllegalArgumentException("Invalid input provided")
+					}
+					fileDBConfigIO.setDBProperties(dbProperties);
+					fileDBConfigIO = null;
+					dbProperties = null;
+					break;
+				}
+				case 2: {
+					fileDBConfigIO = new LoadDBConfigFromFile();
+					dbProperties = fileDBConfigIO.getDBProperties();
+
+					dbProperties.forEach((k,v) -> viewer.println(k+" "+v));
+
+					fileDBConfigIO = null;
+					dbProperties = null;
+					
+					break;
+				}
+				case 3: {
+					viewer.println("Exiting from the system !");
+					continueApp = false;
+					break;
+				}
+				default: {
+					viewer.println("Unsupported option. Please enter a number corresponding to the provided menu");
+				}
+			}
+		}
+	}
+	
+	private void loadMenuDBConfig() {
+		viewer.println("Please select an option. Simply enter the number to choose an action");
+		viewer.println("1 Set DB Configuration");
+		viewer.println("2 Show DB Configuration");
+		viewer.println("3 Shutdown System");
+	}
 }

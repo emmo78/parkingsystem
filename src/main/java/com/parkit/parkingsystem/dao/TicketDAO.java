@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,9 +43,10 @@ public class TicketDAO {
      */
     public boolean saveTicket(Ticket ticket){
         Connection con = null;
+        PreparedStatement ps = null;
         try {
             con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
-            PreparedStatement ps = con.prepareStatement(DBConstants.SAVE_TICKET);
+            ps = con.prepareStatement(DBConstants.SAVE_TICKET);
             //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
             //ps.setInt(1,ticket.getId());
             ps.setInt(1,ticket.getParkingSpot().getId());
@@ -57,7 +59,8 @@ public class TicketDAO {
             logger.error("Error persisting ticket",ex);
             return false;
         } finally { //The finally block will be executed even after a return statement in a method.
-            dataBaseConfig.closeConnection(con);
+            if (ps != null) dataBaseConfig.closePreparedStatement(ps);
+        	if (con != null) dataBaseConfig.closeConnection(con);
         }
     }
 
@@ -71,13 +74,15 @@ public class TicketDAO {
      */
     public Ticket getTicket(String vehicleRegNumber) {
         Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
         Ticket ticket = null;
         try {
             con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
-            PreparedStatement ps = con.prepareStatement(DBConstants.GET_TICKET);
+            ps = con.prepareStatement(DBConstants.GET_TICKET);
             //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
             ps.setString(1,vehicleRegNumber);
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             if(rs.next()) {
                 ticket = new Ticket();
                 ParkingSpot parkingSpot = new ParkingSpot(rs.getInt(1), ParkingType.valueOf(rs.getString(6)),false);
@@ -88,12 +93,12 @@ public class TicketDAO {
                 ticket.setInTime(rs.getTimestamp(4));
                 ticket.setOutTime(rs.getTimestamp(5));
             }
-            dataBaseConfig.closeResultSet(rs);
-            dataBaseConfig.closePreparedStatement(ps);
         } catch(Exception ex) {
             logger.error("Error getting ticket",ex);
         } finally {
-            dataBaseConfig.closeConnection(con);
+        	if (rs != null) dataBaseConfig.closeResultSet(rs);
+        	if (ps != null) dataBaseConfig.closePreparedStatement(ps);
+        	if (con != null) dataBaseConfig.closeConnection(con);
         }
         return ticket; //can return a ticket = null 
     }
@@ -105,9 +110,10 @@ public class TicketDAO {
      */
     public boolean updateTicket(Ticket ticket) {
         Connection con = null;
+        PreparedStatement ps = null;
         try {
             con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
-            PreparedStatement ps = con.prepareStatement(DBConstants.UPDATE_TICKET);
+            ps = con.prepareStatement(DBConstants.UPDATE_TICKET);
             ps.setDouble(1, ticket.getPrice());
             ps.setTimestamp(2, new Timestamp(ticket.getOutTime().getTime()));
             ps.setInt(3,ticket.getId());
@@ -116,8 +122,9 @@ public class TicketDAO {
         } catch (Exception ex) {
             logger.error("Error saving ticket info",ex);
             return false;
-        } finally {
-            dataBaseConfig.closeConnection(con); //The finally block will be executed even after a return statement in a method.
+        } finally { //The finally block will be executed even after a return statement in a method.
+        	if (ps != null) dataBaseConfig.closePreparedStatement(ps);
+        	if (con != null) dataBaseConfig.closeConnection(con); 
         }
     }
 
@@ -128,10 +135,13 @@ public class TicketDAO {
 	 */
     public Boolean isRecurringUserTicket(Ticket ticket) {
         Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
         int times = 0;
         try {
             con = dataBaseConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
-            PreparedStatement ps = con.prepareStatement(DBConstants.GET_TIMES); // LAST_MONTH_BEGIN, LAST_MONT_END, VEHICLE_REG_NUMBER
+            ps = con.prepareStatement(DBConstants.GET_TIMES); // LAST_MONTH_BEGIN, LAST_MONT_END, VEHICLE_REG_NUMBER
             Calendar lastMonthBegin = new GregorianCalendar();
             lastMonthBegin.setTime(ticket.getInTime());
             lastMonthBegin.set(Calendar.DATE, 1); //set date at the begin of month
@@ -148,17 +158,17 @@ public class TicketDAO {
             ps.setTimestamp(1, new Timestamp(lastMonthBegin.getTimeInMillis()));
             ps.setTimestamp(2, new Timestamp(lastMonthEnd.getTimeInMillis()));
             ps.setString(3, ticket.getVehicleRegNumber());
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             if(rs.next()){
             times = rs.getInt(1);
             }
-            dataBaseConfig.closeResultSet(rs);
-            dataBaseConfig.closePreparedStatement(ps);
         } catch(Exception ex) {
             logger.error("Error getting user last month times",ex);
-            return null;
+            return null; //Optional.ofNullable(ticketDAO.isRecurringUserTicket(ticket))... see ParkingService line 209
         } finally {
-            dataBaseConfig.closeConnection(con);
+        	if (rs != null) dataBaseConfig.closeResultSet(rs);
+        	if (ps != null) dataBaseConfig.closePreparedStatement(ps);
+        	if (con != null) dataBaseConfig.closeConnection(con);
         }
         return times>10;
 	}
