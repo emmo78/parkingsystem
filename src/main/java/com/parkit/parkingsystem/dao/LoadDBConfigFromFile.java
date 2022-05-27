@@ -27,7 +27,6 @@ public class LoadDBConfigFromFile implements DBConfigIO {
 			logger.error("Error opening file reader",e);
 		} catch (UnsupportedEncodingException e) {
 			logger.error("Error opening file reader : The Character Encoding is not supported",e);
-			e.printStackTrace();
 		}
 	}
 	
