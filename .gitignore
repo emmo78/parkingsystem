@@ -1,0 +1,6 @@
+/bin/
+/JavaDoc/
+/PowerPoint/
+/target/
+.*
+dbProperties.txt
