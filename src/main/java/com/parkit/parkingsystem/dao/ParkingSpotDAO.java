@@ -57,9 +57,9 @@ public class ParkingSpotDAO {
         } catch(Exception ex) {
             logger.error("Error fetching next available slot",ex);
         } finally {
-            if (rs != null) dataBaseConfig.closeResultSet(rs);
-            if (ps != null) dataBaseConfig.closePreparedStatement(ps);
-        	if (con != null) dataBaseConfig.closeConnection(con);
+            dataBaseConfig.closeResultSet(rs); //will test rs != null
+            dataBaseConfig.closePreparedStatement(ps); //will test ps != null
+            dataBaseConfig.closeConnection(con);  //will test con != null
         }
         return result;
     }
@@ -85,9 +85,8 @@ public class ParkingSpotDAO {
             logger.error("Error updating parking info",ex);
             return false;
         } finally { //The finally block will be executed even after a return statement in a method.
-            if (ps != null) dataBaseConfig.closePreparedStatement(ps);
-        	if (con != null) dataBaseConfig.closeConnection(con); 
+            dataBaseConfig.closePreparedStatement(ps); //will test ps != null
+            dataBaseConfig.closeConnection(con); //will test con != null
         }
     }
-
 }

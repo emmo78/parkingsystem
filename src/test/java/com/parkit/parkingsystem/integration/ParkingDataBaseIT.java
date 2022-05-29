@@ -109,12 +109,14 @@ public class ParkingDataBaseIT {
 		
         //THEN
         Connection con = null;
+        PreparedStatement ps = null ;
+        ResultSet rs = null;
         try {
             con = dataBaseTestConfig.getConnection(); //throws ClassNotFoundException, SQLException will be caught see catch
-            PreparedStatement ps = con.prepareStatement("select p.PARKING_NUMBER, p.TYPE, p.AVAILABLE, "
+            ps = con.prepareStatement("select p.PARKING_NUMBER, p.TYPE, p.AVAILABLE, "
             		+ "t.PARKING_NUMBER, t.VEHICLE_REG_NUMBER, t.PRICE, t.IN_TIME, t.OUT_TIME "
             		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER");
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             while (rs.next()) {
                 TestResult tResult = new TestResult(); //Declare and initialize a new pointer (reference value to object)
                 tResult.parkingNumber = rs.getInt(1);
@@ -128,12 +130,12 @@ public class ParkingDataBaseIT {
             	tResults.add(tResult); //The pointer (reference value to object) is added in the List
             	tResult = null; //Nullify pointer to avoid usage in the next loop 
             }
-            dataBaseTestConfig.closeResultSet(rs);
-            dataBaseTestConfig.closePreparedStatement(ps);
         } catch(Exception ex) {
         	ex.printStackTrace();
         } finally {
-            dataBaseTestConfig.closeConnection(con);
+            dataBaseTestConfig.closeResultSet(rs); // will test rs != null
+            dataBaseTestConfig.closePreparedStatement(ps); // will test ps != null
+            dataBaseTestConfig.closeConnection(con); // will test con != null
         }
  
         verify(inputReaderUtil, times(7)).readSelection(); // 7 times used
@@ -217,12 +219,12 @@ public class ParkingDataBaseIT {
             		ex.printStackTrace();
             	}
             });
-            dataBaseTestConfig.closePreparedStatement(psT);
-            dataBaseTestConfig.closePreparedStatement(psP);
+            dataBaseTestConfig.closePreparedStatement(psT); //will test psT != null
+            dataBaseTestConfig.closePreparedStatement(psP); //will test psP != null
         } catch(Exception ex) {
         	ex.printStackTrace();
         } finally {
-            dataBaseTestConfig.closeConnection(con);
+            dataBaseTestConfig.closeConnection(con); //will test con != null
         }  	
         tResults.clear(); // Clear the list
         
@@ -253,12 +255,12 @@ public class ParkingDataBaseIT {
             	tResults.add(tResult); //The pointer (reference value to object) is added in the List
             	tResult = null; //Nullify pointer to avoid usage in the next loop 
             }
-            dataBaseTestConfig.closeResultSet(rs);
-            dataBaseTestConfig.closePreparedStatement(ps);
+            dataBaseTestConfig.closeResultSet(rs); //will test rs != null
+            dataBaseTestConfig.closePreparedStatement(ps); //will test ps != null
         } catch(Exception ex) {
         	ex.printStackTrace();
         } finally {
-            dataBaseTestConfig.closeConnection(con);
+            dataBaseTestConfig.closeConnection(con); //will test com != null
         }
  
         try {

@@ -57,8 +57,8 @@ public class TicketDAO {
             logger.error("Error persisting ticket",ex);
             return false;
         } finally { //The finally block will be executed even after a return statement in a method.
-            if (ps != null) dataBaseConfig.closePreparedStatement(ps);
-        	if (con != null) dataBaseConfig.closeConnection(con);
+        	dataBaseConfig.closePreparedStatement(ps); //will test ps != null
+            dataBaseConfig.closeConnection(con);//will test con =! null
         }
     }
 
@@ -94,9 +94,9 @@ public class TicketDAO {
         } catch(Exception ex) {
             logger.error("Error getting ticket",ex);
         } finally {
-        	if (rs != null) dataBaseConfig.closeResultSet(rs);
-        	if (ps != null) dataBaseConfig.closePreparedStatement(ps);
-        	if (con != null) dataBaseConfig.closeConnection(con);
+        	dataBaseConfig.closeResultSet(rs); //will test rs != null
+        	dataBaseConfig.closePreparedStatement(ps); //will test ps != null
+        	dataBaseConfig.closeConnection(con); //will test con != null
         }
         return ticket; //can return a ticket = null 
     }
@@ -121,8 +121,8 @@ public class TicketDAO {
             logger.error("Error saving ticket info",ex);
             return false;
         } finally { //The finally block will be executed even after a return statement in a method.
-        	if (ps != null) dataBaseConfig.closePreparedStatement(ps);
-        	if (con != null) dataBaseConfig.closeConnection(con); 
+        	dataBaseConfig.closePreparedStatement(ps); //will test ps != null
+        	dataBaseConfig.closeConnection(con); //will test con != null
         }
     }
 
@@ -164,9 +164,9 @@ public class TicketDAO {
             logger.error("Error getting user last month times",ex);
             return null; //Optional.ofNullable(ticketDAO.isRecurringUserTicket(ticket))... see ParkingService line 209
         } finally {
-        	if (rs != null) dataBaseConfig.closeResultSet(rs);
-        	if (ps != null) dataBaseConfig.closePreparedStatement(ps);
-        	if (con != null) dataBaseConfig.closeConnection(con);
+        	dataBaseConfig.closeResultSet(rs); //will test rs != null
+        	dataBaseConfig.closePreparedStatement(ps); //will test ps != null
+        	dataBaseConfig.closeConnection(con); //will test con != null
         }
         return times>10;
 	}

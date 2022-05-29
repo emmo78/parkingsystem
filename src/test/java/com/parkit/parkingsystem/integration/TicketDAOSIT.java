@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -29,6 +30,7 @@ import com.parkit.parkingsystem.model.Ticket;
  *
  */
 public class TicketDAOSIT {
+	
     private DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
     private DataBasePrepareService dataBasePrepareService; //static for @BeforeAll and @AfterAll
 	private ParkingSpot parkingSpot;
@@ -119,15 +121,21 @@ public class TicketDAOSIT {
 		            psT.setTimestamp(4, new Timestamp(t.getInTime().getTime()));
 		            psT.setTimestamp(5, (t.getOutTime() == null)?null: (new Timestamp(t.getOutTime().getTime())));
 		            psT.execute();
+            	} catch(SQLException ex) {
+            		ex.printStackTrace();
             	} catch(Exception ex) {
             		ex.printStackTrace();
             	}
             });
-            dataBaseTestConfig.closePreparedStatement(psT);
-        } catch(Exception ex){
+            	dataBaseTestConfig.closePreparedStatement(psT); //will test (ps != null)
+        } catch(SQLException ex) {
+    		ex.printStackTrace();
+    	} catch(ClassNotFoundException ex) {
+    		ex.printStackTrace();
+    	} catch(Exception ex){
         	ex.printStackTrace();
         } finally {
-            dataBaseTestConfig.closeConnection(con);
+            dataBaseTestConfig.closeConnection(con); //will test (con != null)
         }
         con = null;
         tickets.clear(); // Clear the list

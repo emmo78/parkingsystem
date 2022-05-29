@@ -109,9 +109,8 @@ public final class InteractiveShell {
 					viewer.println("Enter login for db");
 					try {
 						dbProperties.setProperty("user", inputReaderUtil.readVehicleRegistrationNumber());
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+					} catch (Exception e) {
+						logger.error(e); //IllegalArgumentException("Invalid input provided")
 					}
 					
 					viewer.println("Enter root password");					

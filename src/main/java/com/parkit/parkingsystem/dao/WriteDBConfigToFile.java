@@ -73,5 +73,7 @@ public class WriteDBConfigToFile implements DBConfigIO{
 	}
 	
 	@Override
-	public Properties getDBProperties() {return null;}
+	public Properties getDBProperties() {
+		return null;
+	}
 }

@@ -43,7 +43,7 @@ public class DataBaseConfig {
      * @param con : Connection object
      */
     public void closeConnection(Connection con){
-        if(con!=null) {
+        if(con != null) {
             try {
                 con.close();
                 logger.info("Closing DB connection");
@@ -58,7 +58,7 @@ public class DataBaseConfig {
      * @param ps : PreparedStatement object
      */
     public void closePreparedStatement(PreparedStatement ps) {
-        if(ps!=null) {
+        if(ps != null) {
             try {
                 ps.close();
                 logger.info("Closing Prepared Statement");
@@ -73,7 +73,7 @@ public class DataBaseConfig {
      * @param rs : ResultSet object
      */
     public void closeResultSet(ResultSet rs) {
-        if(rs!=null) {
+        if(rs != null) {
             try {
                 rs.close();
                 logger.info("Closing Result Set");
