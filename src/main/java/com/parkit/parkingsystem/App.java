@@ -21,7 +21,7 @@ public class App {
      * @param args not used in this method
      */
     
-    public static void main(String args[]){
+    public static void main(String[] args){
     	logger.info("Initializing Parking System");
         interactiveShellInstance = InteractiveShell.getInstance();
         switch (args.length) {

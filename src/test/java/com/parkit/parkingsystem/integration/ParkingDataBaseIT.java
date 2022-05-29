@@ -144,7 +144,7 @@ public class ParkingDataBaseIT {
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
-        assertThat(tResults.size()).isEqualTo(5);
+        assertThat(tResults).hasSize(5);
         assertThat(tResults)
         	.extracting(
         			tR -> tR.parkingNumber,

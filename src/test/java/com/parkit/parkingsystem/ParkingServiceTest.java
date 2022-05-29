@@ -160,7 +160,7 @@ public class ParkingServiceTest {
 	        //Asserts the arguments are good
 	        if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
 		        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
-	        	assertThat(parkingTypeCaptor.getValue().toString()).isEqualTo(type);
+	        	assertThat(parkingTypeCaptor.getValue()).hasToString(type);
 	        }
 	
 	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
@@ -381,7 +381,7 @@ public class ParkingServiceTest {
             //Assert the arguments are good
             if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
     	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
-            	assertThat(parkingTypeCaptor.getValue().toString()).isEqualTo("CAR");
+            	assertThat(parkingTypeCaptor.getValue()).hasToString("CAR");
             }
     	}
     	
@@ -433,7 +433,7 @@ public class ParkingServiceTest {
             //Assert the arguments are good
             if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
     	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
-            	assertThat(parkingTypeCaptor.getValue().toString()).isEqualTo("CAR");
+            	assertThat(parkingTypeCaptor.getValue()).hasToString("CAR");
             }
     	}	
     }

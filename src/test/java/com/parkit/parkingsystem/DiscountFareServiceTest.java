@@ -67,7 +67,7 @@ public class DiscountFareServiceTest {
         discountFareService.fareForThirtyOrLessMinutes(ticket); //ticket is a pointer to the object. Only object'll be modified
         
     	//THEN
-        assertThat(ticket.getPrice()).isEqualTo(0);
+        assertThat(ticket.getPrice()).isZero();
     }
     
     /**
