@@ -4,4 +4,4 @@
 /target/
 /logs/
 .*
-dbProperties.txt
+db.properties

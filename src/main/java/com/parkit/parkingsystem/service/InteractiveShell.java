@@ -106,13 +106,21 @@ public final class InteractiveShell {
 					fileDBConfigIO = new WriteDBConfigToFile();
 					dbProperties = new Properties();
 					
-					viewer.println("Enter root password");
-					dbProperties.setProperty("user", "root");
+					viewer.println("Enter login for db");
+					try {
+						dbProperties.setProperty("user", inputReaderUtil.readVehicleRegistrationNumber());
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					
+					viewer.println("Enter root password");					
 					try {
 						dbProperties.setProperty("password", inputReaderUtil.readVehicleRegistrationNumber());
 					} catch(Exception e) {
 						logger.error(e); //IllegalArgumentException("Invalid input provided")
 					}
+					
 					fileDBConfigIO.setDBProperties(dbProperties);
 					fileDBConfigIO = null;
 					dbProperties = null;
@@ -126,7 +134,6 @@ public final class InteractiveShell {
 
 					fileDBConfigIO = null;
 					dbProperties = null;
-					
 					break;
 				}
 				case 3: {
