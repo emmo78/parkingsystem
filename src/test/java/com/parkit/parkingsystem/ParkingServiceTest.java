@@ -60,7 +60,7 @@ public class ParkingServiceTest {
     ArgumentCaptor<ParkingType> parkingTypeCaptor;
 	ArgumentCaptor<ParkingSpot> parkingSpotCaptor;
 	ArgumentCaptor<Ticket> ticketCaptor;
-	ArgumentCaptor<String> stringCaptor;
+	ArgumentCaptor<String> stringCaptor;  //to catch String in ticketDAO.getTicket(any(String.class)
 
     /**
      * Before Each Test initialize viewer, Class Under Test,
@@ -69,8 +69,8 @@ public class ParkingServiceTest {
 	@BeforeEach
     private void setUpPerTest() {
         viewer = new ViewerImpl();
-        parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
-        parkingService.setFareCalculatorService(fareCalculatorService);
+        parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer); // initialize CUT
+        parkingService.setFareCalculatorService(fareCalculatorService); // to inject Mock (because not in constructor)
 		parkingTypeCaptor = ArgumentCaptor.forClass(ParkingType.class);
 		parkingSpotCaptor = ArgumentCaptor.forClass(ParkingSpot.class);
         ticketCaptor = ArgumentCaptor.forClass(Ticket.class);
@@ -83,8 +83,8 @@ public class ParkingServiceTest {
      */
     @AfterEach
     private void undefPerTest() {
-    	viewer = null;
     	parkingService = null;
+    	viewer = null;
     	parkingTypeCaptor = null;
     	parkingSpotCaptor = null;
     	ticketCaptor = null;
@@ -114,7 +114,7 @@ public class ParkingServiceTest {
 	    @DisplayName("Nominal cases Incoming Vehicle")
 	    public void processIncomingVehicleNominalTests(int input, String type, String regNumber){
 	    	//GIVEN
-	    	int inputReaderUtilReadSelectTimes = 0;
+	    	int inputReaderUtilReadSelectTimes = 0; //given number of use of a method
 	    	int parkingSpotDAOGetTimes = 0;
 	    	int inputReaderUtilReadRegNumTimes = 0;
 	    	int parkingSpotDAOUpdateTimes = 0;
@@ -125,10 +125,10 @@ public class ParkingServiceTest {
 	    	
 			when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
 	    	parkingSpotDAOGetTimes++; //=1
-			//parkingTypeCaptor picked up 1 ParkingType's element
+			//parkingTypeCaptor picked up 1 ParkingType's element (of Enumeration)
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber); //throws Exception
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber); //throws an exception when is not a Mock
 			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
@@ -150,7 +150,7 @@ public class ParkingServiceTest {
 	        verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
 	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws Exception
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws an exception when is not a Mock
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -158,18 +158,18 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(any(Ticket.class));
 	        
 	        //Asserts the arguments are good
-	        if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 		        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
 	        	assertThat(parkingTypeCaptor.getValue()).hasToString(type);
 	        }
 	
-	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	       	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
 	        	assertThat(parkingSpotCaptor.getValue())
 	        		.usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.valueOf(type), false));
 	        }
 	        
-	        if(ticketDAOSaveTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(ticketDAOSaveTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 				Date expectedInTime = new Date();
 	        	verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
@@ -202,14 +202,14 @@ public class ParkingServiceTest {
         @DisplayName("Nominal case exiting vehicle")
         public void processExitingVehicleNominalTest(){
         	//GIVEN
-        	int inputReaderUtilReadRegNumTimes = 0;
+        	int inputReaderUtilReadRegNumTimes = 0; //given number of use of a method
         	int ticketDAOGetTimes = 0;
         	int fareCalculatorServiceTimes = 0;
         	int ticketDAOUpdateTimes = 0;
         	int parkingSpotDAOUpdateTimes = 0;
         	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM"); //throws Exception
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM"); //throws an exception when is not a Mock
 			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
@@ -249,7 +249,7 @@ public class ParkingServiceTest {
             //THEN
             //Verify mocks are used
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws an exception when is not a Mock
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -259,11 +259,11 @@ public class ParkingServiceTest {
 	        verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
 
 	        //Asserts the arguments are good
-	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
-	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 				Date expectedOutTime = new Date();
 	        	verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
@@ -286,7 +286,7 @@ public class ParkingServiceTest {
 	        	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
 	        	 * if difference is equal to delta it's ok. */ 
 	        }
-	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
 	        	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
 	        }
@@ -312,7 +312,7 @@ public class ParkingServiceTest {
         public void processIncomingVehicleForUnknownTypeShouldUseOnlyOneTimeInputReaderUtil(){
   
     		//GIVEN
-    		int inputReaderUtilReadSelectTimes = 0;
+    		int inputReaderUtilReadSelectTimes = 0; //given number of use of a method
         	int parkingSpotDAOGetTimes = 0;
         	int inputReaderUtilReadRegNumTimes = 0;
         	int parkingSpotDAOUpdateTimes = 0;
@@ -331,7 +331,7 @@ public class ParkingServiceTest {
             verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
-    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws Exception
+    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws an exception when is not a Mock
     		} catch(Exception e) {
     			e.printStackTrace();
     		}
@@ -347,7 +347,7 @@ public class ParkingServiceTest {
         @DisplayName("Parking's slots full")
         public void processIncomingVehicleParkingSlotsFullShouldUseOneTimeInputReaderAndParkingDAO(){
         	//GIVEN
-    		int inputReaderUtilReadSelectTimes = 0;
+    		int inputReaderUtilReadSelectTimes = 0; //given number of use of a method
         	int parkingSpotDAOGetTimes = 0;
         	int inputReaderUtilReadRegNumTimes = 0;
         	int parkingSpotDAOUpdateTimes = 0;
@@ -371,7 +371,7 @@ public class ParkingServiceTest {
             verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
-    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
+    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws an exception when is not a Mock
     		} catch(Exception e) {
     			e.printStackTrace();
     		}
@@ -379,7 +379,7 @@ public class ParkingServiceTest {
             verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(any(Ticket.class));
             
             //Assert the arguments are good
-            if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+            if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
     	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
             	assertThat(parkingTypeCaptor.getValue()).hasToString("CAR");
             }
@@ -393,7 +393,7 @@ public class ParkingServiceTest {
         @DisplayName("Vehicle's registration number is invalid")
         public void processIncomingVehicleRegNumberInvalidShouldUseOneTimeInputReaderAndParkingDAO(){
         	//GIVEN
-    		int inputReaderUtilReadSelectTimes = 0;
+    		int inputReaderUtilReadSelectTimes = 0; //given number of use of a method
         	int parkingSpotDAOGetTimes = 0;
         	int inputReaderUtilReadRegNumTimes = 0;
         	int parkingSpotDAOUpdateTimes = 0;
@@ -407,7 +407,7 @@ public class ParkingServiceTest {
     		//parkingTypeCaptor picked up 1 ParkingType's element
         	
         	try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new IllegalArgumentException("Invalid input provided"));
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new IllegalArgumentException("Invalid input provided")); //throws an exception when is not a Mock
 			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
@@ -423,7 +423,7 @@ public class ParkingServiceTest {
             verify(inputReaderUtil, times(inputReaderUtilReadSelectTimes)).readSelection();
             verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(any(ParkingType.class));
             try {
-    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
+    			verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws an exception when is not a Mock
     		} catch(Exception e) {
     			e.printStackTrace();
     		}
@@ -431,7 +431,7 @@ public class ParkingServiceTest {
             verify(ticketDAO, times(ticketDAOSaveTimes)).saveTicket(any(Ticket.class));
             
             //Assert the arguments are good
-            if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+            if(parkingSpotDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
     	        verify(parkingSpotDAO, times(parkingSpotDAOGetTimes)).getNextAvailableSlot(parkingTypeCaptor.capture());
             	assertThat(parkingTypeCaptor.getValue()).hasToString("CAR");
             }
@@ -456,14 +456,14 @@ public class ParkingServiceTest {
 	    @DisplayName("Vehicle's registration number is invalid")
 	    public void processExitingVehicleRegNumberInvalidShouldNotUseDAOAndReturnToMenu(){
 	    	//GIVEN
-	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int inputReaderUtilReadRegNumTimes = 0; //given number of use of a method
 	    	int ticketDAOGetTimes = 0;
 	    	int fareCalculatorServiceTimes = 0;
 	    	int ticketDAOUpdateTimes = 0;
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 	    	try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new IllegalArgumentException("Invalid input provided"));
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new IllegalArgumentException("Invalid input provided")); //throws an exception when is not a Mock
 			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
@@ -477,7 +477,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws an exception when is not a Mock
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -496,20 +496,20 @@ public class ParkingServiceTest {
 	    @DisplayName("getTicket return a null")
 	    public void processExitingVehicleGetTicketReturnNullShouldUseOneTimeInputReaderAndTicketDAO(){
 	    	//GIVEN
-	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int inputReaderUtilReadRegNumTimes = 0; //given number of use of a method
 	    	int ticketDAOGetTimes = 0;
 	    	int fareCalculatorServiceTimes = 0;
 	    	int ticketDAOUpdateTimes = 0;
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM"); //throws an exception when is not a Mock
 			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
 	    	inputReaderUtilReadRegNumTimes++; //=1
 	    	
-            when(ticketDAO.getTicket(any(String.class))).thenReturn(null); // mocks return null by default!
+            when(ticketDAO.getTicket(any(String.class))).thenReturn(null); // mocks return null by default !
             ticketDAOGetTimes++; //= 1;
             //stringCaptor picked up "REGNUM"
 
@@ -522,7 +522,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws an exception when is not a Mock
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -533,7 +533,7 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        
 	        //Asserts the arguments are good
-	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
@@ -548,14 +548,14 @@ public class ParkingServiceTest {
 	    @DisplayName("FareCalculatorService throws an IllegalArgumentException")
 	    public void processExitingVehicleAndFareCalculatorThrowsExceptionShouldNotUseDAOUpdatingNoThrowsEsxception(){
 	    	//GIVEN
-	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int inputReaderUtilReadRegNumTimes = 0; //given number of use of a method
 	    	int ticketDAOGetTimes = 0;
 	    	int fareCalculatorServiceTimes = 0;
 	    	int ticketDAOUpdateTimes = 0;
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws an exception when is not a Mock
 			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
@@ -583,7 +583,7 @@ public class ParkingServiceTest {
 	        //THEN
 	        //Verify mocks are used or never
 	        try {
-				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber();  //throws Exception
+				verify(inputReaderUtil, times(inputReaderUtilReadRegNumTimes)).readVehicleRegistrationNumber(); //throws an exception when is not a Mock
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -594,7 +594,7 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 
 	        //Asserts the arguments are good
-	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
@@ -608,14 +608,14 @@ public class ParkingServiceTest {
 	    @DisplayName("Uptating ticketFail")
 	    public void processExitingVehicleUpdatingTicketFalseShouldNotUseDAOUpdatingParkingNoThrowsEsxception(){
 	    	//GIVEN
-	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int inputReaderUtilReadRegNumTimes = 0; //given number of use of a method
 	    	int ticketDAOGetTimes = 0;
 	    	int fareCalculatorServiceTimes = 0;
 	    	int ticketDAOUpdateTimes = 0;
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws an exception when is not a Mock
 			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
@@ -664,11 +664,11 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        
 	        //Asserts the arguments are good
-	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
-	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 				Date expectedOutTime = new Date();
 				verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
@@ -700,14 +700,14 @@ public class ParkingServiceTest {
 	    @DisplayName("ParkingDAO update parking fail")
 	    public void processExitingVehicleUpdatingParkingDAOUpdateParkingFails(){
 	    	//GIVEN
-	    	int inputReaderUtilReadRegNumTimes = 0;
+	    	int inputReaderUtilReadRegNumTimes = 0; //given number of use of a method
 	    	int ticketDAOGetTimes = 0;
 	    	int fareCalculatorServiceTimes = 0;
 	    	int ticketDAOUpdateTimes = 0;
 	    	int parkingSpotDAOUpdateTimes = 0;
 	    	
 			try {
-				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM");  //throws Exception
+				when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("REGNUM"); //throws an exception when is not a Mock
 			} catch(Exception e1) {
 				e1.printStackTrace();
 			}
@@ -758,11 +758,11 @@ public class ParkingServiceTest {
 	        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        
 	        //Asserts the arguments are good
-	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	        	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
 		        assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	        }
-	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 				Date expectedOutTime = new Date();
 		        verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	        	assertThat(ticketCaptor.getValue())
@@ -788,7 +788,7 @@ public class ParkingServiceTest {
 	        	/* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
 	        	 * if difference is equal to delta it's ok. */ 
 	        }
-	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	        if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	        	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
 	        	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
 	        }
@@ -849,7 +849,7 @@ public class ParkingServiceTest {
         if(isRecurrentS.equals("true")) {
         	fareCalculatorServiceRecurringUserTimes++;
         } /* The method recurringUser is only called if ticketDAO.isRecurringUserTicket has returned true
-           * In case false retruned, it needs lenient() because not used. */
+           * In case false returned, it needs lenient() because not used. */
          
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
         ticketDAOUpdateTimes++; //= 1

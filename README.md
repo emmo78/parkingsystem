@@ -6,8 +6,11 @@ This app uses Java to run and stores the data in Mysql DB.
 
 The login and password to connect database are no longer hardcoded.  This to avoid anyone with access to either the source code or the compiled code easily learn the password.
 After installing and run the sql commands go to the folder that contains the pom.xml file and execute the below command :
+
 $ mvn package
+
 $ java -jar ./target/parking-system-1.0-SNAPSHOT-jar-with-dependencies.jar setDBConfig
+
 Then chose 1 to enter the login and password and save them to db.properties file.
 This file name is in .gitignore
 
