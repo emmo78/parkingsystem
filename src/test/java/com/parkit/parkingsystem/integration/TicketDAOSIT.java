@@ -32,7 +32,7 @@ import com.parkit.parkingsystem.model.Ticket;
 public class TicketDAOSIT {
 	
     private DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
-    private DataBasePrepareService dataBasePrepareService; //static for @BeforeAll and @AfterAll
+    private DataBasePrepareService dataBasePrepareService;
 	private ParkingSpot parkingSpot;
     private List<Ticket> tickets;
 	private Calendar inTimeCal;

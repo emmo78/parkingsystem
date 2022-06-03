@@ -877,11 +877,11 @@ public class ParkingServiceTest {
 	    verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(any(ParkingSpot.class));
 
 	    //Asserts the arguments are good
-	    if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	    if(ticketDAOGetTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	       	verify(ticketDAO, times(ticketDAOGetTimes)).getTicket(stringCaptor.capture());
 		    assertThat(stringCaptor.getValue()).isEqualTo("REGNUM");
 	    }
-	    if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	    if(ticketDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 			Date expectedOutTime = new Date();
 	       	verify(ticketDAO, times(ticketDAOUpdateTimes)).updateTicket(ticketCaptor.capture());
 	       	assertThat(ticketCaptor.getValue())
@@ -903,7 +903,7 @@ public class ParkingServiceTest {
 	        /* Verifies that the output Dates are close to the expected Dates by less than delta (expressed in milliseconds),
 	         * if difference is equal to delta it's ok. */ 
 	        }
-	    if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify success
+	    if(parkingSpotDAOUpdateTimes == 1) { // To avoid having "No argument value was captured!" even if verify times(0) is a wanted success
 	       	verify(parkingSpotDAO, times(parkingSpotDAOUpdateTimes)).updateParking(parkingSpotCaptor.capture());
 	       	assertThat(parkingSpotCaptor.getValue()).usingRecursiveComparison().isEqualTo(new ParkingSpot(1, ParkingType.CAR, true));
 	    }

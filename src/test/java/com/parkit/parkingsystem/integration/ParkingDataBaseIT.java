@@ -103,7 +103,7 @@ public class ParkingDataBaseIT {
 		Date expectedInTime = new Date();
 
 		//WHEN & Asserts that Exception was caught for the two extra vehicles
-		for(int i=1; i<=7; i++) {
+		for(int i=1; i<=7; i++) { //uses mocks seventh time... will fill the parking and test overfilling it
 			assertDoesNotThrow(() -> parkingService.processIncomingVehicle());
 		}
 		
@@ -119,10 +119,10 @@ public class ParkingDataBaseIT {
             rs = ps.executeQuery();
             while (rs.next()) {
                 TestResult tResult = new TestResult(); //Declare and initialize a new pointer (reference value to object)
-                tResult.parkingNumber = rs.getInt(1);
+                tResult.parkingNumber = rs.getInt(1); //Primary key (int)
             	tResult.type = rs.getString(2);
             	tResult.available = rs.getBoolean(3);
-            	tResult.parkingSpot = rs.getInt(4);
+            	tResult.parkingSpot = rs.getInt(4); //Foreign key (int)
             	tResult.vehicleRegNumber = rs.getString(5);
             	tResult.price = rs.getDouble(6);
             	tResult.inTime = new Date(rs.getTimestamp(7).getTime());
@@ -147,11 +147,11 @@ public class ParkingDataBaseIT {
         assertThat(tResults).hasSize(5);
         assertThat(tResults)
         	.extracting(
-        			tR -> tR.parkingNumber,
+        			tR -> tR.parkingNumber, //Primary key (int)
         			tR -> tR.type,
         			tR -> tR.available,
-        			tR -> tR.parkingSpot,
-        			tR -> tR.vehicleRegNumber,
+        			tR -> tR.parkingSpot, //Foreign key (int)
+        			tR -> tR.vehicleRegNumber, 
         			tR -> tR.price,
         			tR -> tR.outTime)
         	.containsExactly(
@@ -204,7 +204,7 @@ public class ParkingDataBaseIT {
             PreparedStatement psP = con.prepareStatement("update parking set available = ? where PARKING_NUMBER = ?");
             tResults.forEach(tR -> {
             	try {
-		            psT.setInt(1,tR.parkingSpot);
+		            psT.setInt(1,tR.parkingSpot); //Foreign key (int)
 		            psT.setString(2, tR.vehicleRegNumber);
 		            psT.setDouble(3, tR.price);
 		            psT.setTimestamp(4, new Timestamp(tR.inTime.getTime()));
@@ -212,7 +212,7 @@ public class ParkingDataBaseIT {
 		            psT.execute();
 		            if(!tR.available) { // if availability false
 		                psP.setBoolean(1, tR.available);
-		                psP.setInt(2, tR.parkingNumber);
+		                psP.setInt(2, tR.parkingNumber); //Primary key (int)
 		                psP.executeUpdate();
 		            }
             	} catch(Exception ex) {
@@ -229,7 +229,7 @@ public class ParkingDataBaseIT {
         tResults.clear(); // Clear the list
         
         //WHEN
-        for(int i=1; i<=2; i++) {
+        for(int i=1; i<=2; i++) { //use mocks two time to exit the 2 cars
         	parkingService.processExitingVehicle();
 		}
     	
@@ -240,14 +240,14 @@ public class ParkingDataBaseIT {
             PreparedStatement ps = con.prepareStatement("select p.PARKING_NUMBER, p.TYPE, p.AVAILABLE, "
             		+ "t.PARKING_NUMBER, t.VEHICLE_REG_NUMBER, t.PRICE, t.IN_TIME, t.OUT_TIME "
             		+ "from parking p inner join ticket t on p.PARKING_NUMBER = t.PARKING_NUMBER "
-            		+ "order by t.ID desc limit 2");
+            		+ "order by t.ID desc limit 2"); //only choose the two last one in descending order
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 TestResult tResult = new TestResult(); //Declare and initialize a new pointer (reference value to object)
-                tResult.parkingNumber = rs.getInt(1);
+                tResult.parkingNumber = rs.getInt(1); //Primary key (int)
             	tResult.type = rs.getString(2);
             	tResult.available = rs.getBoolean(3);
-            	tResult.parkingSpot = rs.getInt(4);
+            	tResult.parkingSpot = rs.getInt(4); //Foreign key (int)
             	tResult.vehicleRegNumber = rs.getString(5);
             	tResult.price = rs.getDouble(6);
             	tResult.inTime = new Date(rs.getTimestamp(7).getTime());
@@ -271,10 +271,10 @@ public class ParkingDataBaseIT {
         assertThat(tResults.size()).isEqualTo(2);
         assertThat(tResults)
         	.extracting(
-        			tR -> tR.parkingNumber,
+        			tR -> tR.parkingNumber,  //Primary key (int)
         			tR -> tR.type,
         			tR -> tR.available,
-        			tR -> tR.parkingSpot,
+        			tR -> tR.parkingSpot,  //Foreign key (int)
         			tR -> tR.vehicleRegNumber,
         			tR -> tR.price) 
         	.containsExactly( // descending order
@@ -289,16 +289,18 @@ public class ParkingDataBaseIT {
     }
     
     /**
-     * Nested class with fields to collect ResulSet fields
+     * Nested class with fields to collect/set ResulSet fields
      * @author Olivier MOREL
      *
      */
     private class TestResult {
     	
+    	//ParkingSpot
 		int parkingNumber; //Primary Key
         String type;
         boolean available;
 
+        //Ticket
         int parkingSpot; //Foreign Key
         String vehicleRegNumber;
         double price;

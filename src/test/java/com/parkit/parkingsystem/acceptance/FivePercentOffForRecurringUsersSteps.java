@@ -80,7 +80,8 @@ public class FivePercentOffForRecurringUsersSteps {
 	    /* You can use Cucumber and Mockito at the same time.
 	     * You can't use two JUnit runners at the same time.
 	     * But if you add Mockito as a dependency to your project and create your mocks like this:
-	     * ClassToMock mockedClass = mock(ClassToMock.class); then you should be able to combine the tools.*/
+	     * ClassToMock mockedClass = mock(ClassToMock.class); then you should be able to combine the tools.
+	     * https://stackoverflow.com/questions/38001759/run-cucumber-test-with-mockito*/
 		viewer = new ViewerImpl();
 		parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer);
 		try {
