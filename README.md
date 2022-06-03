@@ -59,3 +59,18 @@ The app has unit tests and integration tests written. More of these need to be a
 To run the tests from maven, go to the folder that contains the pom.xml file and execute the below command.
 
 `mvn test`
+
+### mvn arguments
+
+- $ mvn clean		→ clean ./target
+- $ mvn test		→ run UT
+- $ mvn package		→ build .jar + Jacoco report in ./target/site/jacoco/index.html
+- $ mvn site 		→ put project reports in ./target/site/index.html ( SpotBugs and JavaDocs )
+- $ mvn surefire-report:report → surefire report in	./target/site/ surefire-report
+
+
+
+
+
+
+
