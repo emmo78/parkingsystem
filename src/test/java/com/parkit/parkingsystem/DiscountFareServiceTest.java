@@ -32,7 +32,7 @@ public class DiscountFareServiceTest {
 	 * Before each test initialize attributes
 	 */
 	@BeforeEach
-    private void setUpPerTest() {
+    public void setUpPerTest() {
 		discountFareService = new DiscountFareService();
     	ticket = new Ticket();
     }
@@ -41,7 +41,7 @@ public class DiscountFareServiceTest {
 	 * After each test nullify attributes
 	 */
     @AfterEach
-    private void undefPerTest() {
+    public void undefPerTest() {
 		discountFareService = null;
     	ticket = null;
     }

@@ -67,7 +67,7 @@ public class ParkingServiceTest {
      * and ArgumentCaptor's objects
      */
 	@BeforeEach
-    private void setUpPerTest() {
+    public void setUpPerTest() {
         viewer = new ViewerImpl();
         parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO, viewer); // initialize CUT
         parkingService.setFareCalculatorService(fareCalculatorService); // to inject Mock (because not in constructor)
@@ -82,7 +82,7 @@ public class ParkingServiceTest {
      * and ArgumentCaptor's objects
      */
     @AfterEach
-    private void undefPerTest() {
+    public void undefPerTest() {
     	parkingService = null;
     	viewer = null;
     	parkingTypeCaptor = null;

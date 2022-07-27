@@ -58,7 +58,7 @@ public class ParkingDataBaseIT {
     private static Viewer viewer;    
 
     @BeforeAll
-    private static void setUp() {
+    public static void setUp() {
         parkingSpotDAO = new ParkingSpotDAO();
         parkingSpotDAO.setDataBaseConfig(dataBaseTestConfig);
         ticketDAO = new TicketDAO();
@@ -68,7 +68,7 @@ public class ParkingDataBaseIT {
     }
 
     @AfterAll
-    private static void tearDown(){
+    public static void tearDown(){
         parkingSpotDAO.setDataBaseConfig(null);
         parkingSpotDAO = null;
         ticketDAO.setDataBaseConfig(null);
@@ -78,7 +78,7 @@ public class ParkingDataBaseIT {
     }
 
     @BeforeEach
-    private void setUpPerTest() {
+    public void setUpPerTest() {
         lenient().when(inputReaderUtil.readSelection()).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(2).thenReturn(2).thenReturn(1).thenReturn(2);
         // on first call uses first thenReturn, on second uses second ... on seventh uses seventh, on eighth uses first ...
         try {

@@ -44,7 +44,7 @@ public class TicketDAOSIT {
      * Before Each Test initialize Class Under Test and 
      */
 	@BeforeEach
-    private void setUpPerTest() {
+    public void setUpPerTest() {
     	dataBaseTestConfig = new DataBaseTestConfig();
 		ticketDAO = new TicketDAO();
 		ticketDAO.setDataBaseConfig(dataBaseTestConfig);
@@ -63,7 +63,7 @@ public class TicketDAOSIT {
      *  - ParkingType's enumeration valor;
      */
     @AfterEach
-    private void undefPerTest() {
+    public void undefPerTest() {
     	dataBaseTestConfig = null;
 		ticketDAO.setDataBaseConfig(null);
     	ticketDAO = null;

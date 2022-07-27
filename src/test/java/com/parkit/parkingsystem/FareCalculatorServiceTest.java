@@ -40,7 +40,7 @@ public class FareCalculatorServiceTest {
      * Before Each Test initialize Class Under Test and a Ticket's model pointer
      */
 	@BeforeEach
-    private void setUpPerTest() {
+    public void setUpPerTest() {
     	fareCalculatorService = new FareCalculatorService();
     	ticket = new Ticket();
     }
@@ -53,7 +53,7 @@ public class FareCalculatorServiceTest {
      *  - ParkingType's enumeration valor;
      */
     @AfterEach
-    private void undefPerTest() {
+    public void undefPerTest() {
     	fareCalculatorService = null;
     	ticket = null;
     	parkingSpot = null;
